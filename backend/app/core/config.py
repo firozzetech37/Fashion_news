@@ -35,6 +35,11 @@ class Settings(BaseSettings):
     ADMIN_EMAILS: str = ""
     NEWS_SEARCH_DAYS: int = 7               # how far back a section news search looks
     TOPIC_INTERVAL_MINUTES: int = 15        # how often tracked topics are re-fetched
+    # Secret for the scheduled-jobs endpoint (GitHub Actions sends it). Empty = endpoint disabled.
+    JOBS_TOKEN: str = ""
+    AI_BATCH_PER_TICK: int = 60             # articles AI-processed per scheduled run (no Celery worker)
+    TREND_ENGINE_EVERY_MINUTES: int = 55    # a tick also runs the trend engine when it's this stale
+
     # Proxies in front of the API that append to X-Forwarded-For (Render: 1). 0 = use the direct
     # connection address and ignore the header, so a client can't fake its IP to dodge rate limits.
     TRUSTED_PROXY_HOPS: int = 0

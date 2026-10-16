@@ -1,7 +1,7 @@
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import admin, alerts, analytics, ask, forecast, topics, articles, home, search, sources, trends, verticals
+from app.api import admin, alerts, analytics, ask, forecast, jobs, topics, articles, home, search, sources, trends, verticals
 from app.api.entities import brands_router, celebrities_router
 from app.core.auth import require_admin
 from app.core.config import settings
@@ -31,6 +31,7 @@ app.include_router(alerts.router, prefix="/api/alerts", tags=["alerts"])
 app.include_router(forecast.router, prefix="/api/forecast", tags=["forecast"])
 app.include_router(ask.router, prefix="/api/ask", tags=["assistant"])
 app.include_router(topics.router, prefix="/api/topics", tags=["topics"])
+app.include_router(jobs.router, prefix="/api/jobs", tags=["jobs"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"], dependencies=admin_only)
 
 @app.get("/")

@@ -47,9 +47,10 @@ npm run dev
 | Part | Host | Config |
 |---|---|---|
 | Website (`frontend/`) | Vercel, region `sin1` | `frontend/vercel.json`, env from `frontend/.env.example` |
-| API + worker (`backend/`) | Render, Singapore | `render.yaml` (Blueprint), env from `backend/.env.example` |
+| API (`backend/`) | Render free plan, Singapore | `render.yaml` (Blueprint), env from `backend/.env.example` |
+| Background jobs | GitHub Actions, every 30 min | `.github/workflows/scheduled-jobs.yml` calls `POST /api/jobs/run` |
 | Database | Supabase (Singapore) | already hosted |
-| Redis | Upstash | already hosted |
+| Redis | Upstash | only for the optional local Celery worker |
 
 Production settings that differ from local: `CORS_ORIGINS` (the Vercel URL), `TRUSTED_PROXY_HOPS=1`,
 `NEXT_PUBLIC_API_URL` (the Render URL), and the Supabase Auth Site URL / redirect URLs.

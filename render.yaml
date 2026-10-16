@@ -1,53 +1,32 @@
-# Render Blueprint: creates the TrendScope API and background worker in Singapore, next to the
-# Supabase database. Values marked `sync: false` are asked for when you create the Blueprint.
+# Render Blueprint (free plan): the TrendScope API in Singapore, next to the Supabase database.
+#
+# There is no Celery worker here (Render has no free background workers). Instead the GitHub Actions
+# workflow .github/workflows/scheduled-jobs.yml calls POST /api/jobs/run every 30 minutes, and the API
+# collects news, runs the AI pipeline and (hourly) the trend engine.
+#
+# Values marked `sync: false` are asked for when you create the Blueprint.
 services:
   - type: web
     name: trendscope-api
     runtime: python
     region: singapore
-    plan: starter
+    plan: free
     rootDir: backend
     buildCommand: pip install -r requirements.txt
-    # creates tables / adds new columns before each release (safe to re-run)
-    preDeployCommand: python app/core/init_db.py
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    # Free instances can't use a pre-deploy step, so the safe-to-rerun schema upgrade runs at startup
+    startCommand: python app/core/init_db.py && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /
     envVars:
       - key: PYTHON_VERSION
         value: 3.13.5
       - key: TRUSTED_PROXY_HOPS
         value: "1"
+      # Random secret shared with GitHub Actions (copy it into the TRENDSCOPE_JOBS_TOKEN repo secret)
+      - key: JOBS_TOKEN
+        generateValue: true
       - key: CORS_ORIGINS
         sync: false
       - key: DATABASE_URL
-        sync: false
-      - key: REDIS_URL
-        sync: false
-      - key: GEMINI_API_KEY
-        sync: false
-      - key: SUPABASE_URL
-        sync: false
-      - key: SUPABASE_KEY
-        sync: false
-      - key: ADMIN_EMAILS
-        sync: false
-
-  # Celery worker + scheduler (-B): collection every 15 min, AI queue, hourly trend engine, tracked topics.
-  # Must run continuously, so it needs a paid instance (free instances sleep).
-  - type: worker
-    name: trendscope-worker
-    runtime: python
-    region: singapore
-    plan: starter
-    rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: celery -A workers.celery_app worker -B --loglevel=info
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.13.5
-      - key: DATABASE_URL
-        sync: false
-      - key: REDIS_URL
         sync: false
       - key: GEMINI_API_KEY
         sync: false

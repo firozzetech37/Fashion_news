@@ -1,0 +1,52 @@
+# Runs TrendScope's background work on the free Render plan (which has no worker):
+# every 30 minutes the API collects news, fetches tracked topics, AI-processes new stories,
+# and runs the trend engine when it's due (hourly).
+#
+# Repo secrets needed (Settings -> Secrets and variables -> Actions):
+#   TRENDSCOPE_API_URL     e.g. https://trendscope-api.onrender.com
+#   TRENDSCOPE_JOBS_TOKEN  the JOBS_TOKEN value from the Render service's Environment tab
+#
+# Every 30 min ~= 1,440 Actions minutes/month, inside the 2,000 free minutes for private repos.
+name: Scheduled jobs
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+    inputs:
+      job:
+        description: Job to run
+        type: choice
+        default: tick
+        options: [tick, collect, topics, ai, trends]
+
+concurrency:
+  group: scheduled-jobs
+  cancel-in-progress: false
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger the TrendScope job
+        env:
+          API_URL: ${{ secrets.TRENDSCOPE_API_URL }}
+          JOBS_TOKEN: ${{ secrets.TRENDSCOPE_JOBS_TOKEN }}
+          JOB: ${{ inputs.job || 'tick' }}
+        run: |
+          if [ -z "$API_URL" ] || [ -z "$JOBS_TOKEN" ]; then
+            echo "::error::Set the TRENDSCOPE_API_URL and TRENDSCOPE_JOBS_TOKEN repository secrets."
+            exit 1
+          fi
+          # A sleeping free instance can take up to a minute to wake, so allow a long first request and retry.
+          for attempt in 1 2 3; do
+            code=$(curl -s -o response.json -w '%{http_code}' --max-time 90 -X POST \
+              "${API_URL%/}/api/jobs/run?job=${JOB}" -H "X-Jobs-Token: ${JOBS_TOKEN}") || code=000
+            echo "Attempt ${attempt}: HTTP ${code}"
+            cat response.json 2>/dev/null; echo
+            if [ "$code" = "202" ]; then exit 0; fi
+            sleep 20
+          done
+          echo "::error::The API didn't accept the job."
+          exit 1
