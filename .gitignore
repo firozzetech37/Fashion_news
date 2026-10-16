@@ -1,0 +1,25 @@
+# --- Secrets: never commit real keys (the .env.example files list what's needed) ---
+.env
+.env.*
+!.env.example
+
+# --- Python (backend) ---
+backend/venv/
+__pycache__/
+*.py[cod]
+backend/celerybeat-schedule*
+.pytest_cache/
+
+# --- Node / Next.js (frontend) ---
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/next-env.d.ts
+*.tsbuildinfo
+.vercel
+
+# --- Local tooling ---
+.DS_Store
+*.log
+.claude/
+.frontend-git-backup/
