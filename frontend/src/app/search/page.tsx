@@ -8,7 +8,7 @@ import { TrendCard } from "@/components/trends/trend-card"
 import { ApiUnavailable, TrendGridSkeleton } from "@/components/trends/trend-grid"
 import { getJSON, type SearchResults } from "@/lib/trends"
 
-export const metadata: Metadata = { title: "Search | TrendScope" }
+export const metadata: Metadata = { title: "Search" }
 
 const EXAMPLES = ["brown saree", "red carpet gowns", "sneakers", "k-beauty", "indian bridal fashion", "Zendaya"]
 
@@ -56,7 +56,7 @@ function Examples() {
   return (
     <div className="flex flex-wrap justify-center gap-2">
       {EXAMPLES.map((e) => (
-        <Link key={e} href={`/search?q=${encodeURIComponent(e)}`} className="rounded-full px-4 py-1.5 text-sm ring-1 ring-foreground/15 hover:bg-muted">
+        <Link key={e} href={`/search?q=${encodeURIComponent(e)}`} className="rounded-full px-4 py-1.5 text-sm ring-1 ring-foreground/15 transition-colors duration-200 hover:bg-muted">
           {e}
         </Link>
       ))}
@@ -106,7 +106,7 @@ async function Results({ query }: { query: string }) {
 function ResultSection({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
   return (
     <section className="space-y-5">
-      <h2 className="font-serif text-2xl font-bold">{title} <span className="text-base font-normal text-muted-foreground">{count}</span></h2>
+      <h2 className="font-serif text-2xl font-semibold tracking-tight">{title} <span className="text-base font-normal text-muted-foreground">{count}</span></h2>
       {children}
     </section>
   )

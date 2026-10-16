@@ -39,7 +39,7 @@ export function AlertsBell() {
   return (
     <details className="relative" onToggle={(e) => { if (e.currentTarget.open && newest) { writeSeen(newest); setSeen(newest) } }}>
       <summary aria-label={unread ? `Alerts, ${unread} new` : "Alerts"}
-        className="relative flex size-8 cursor-pointer list-none items-center justify-center rounded-lg hover:bg-muted [&::-webkit-details-marker]:hidden">
+        className="relative flex size-8 cursor-pointer list-none items-center justify-center rounded-lg transition-colors duration-200 hover:bg-muted [&::-webkit-details-marker]:hidden">
         <Bell className="size-5" />
         {unread > 0 && (
           <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-700 px-1 text-[10px] font-semibold text-white">
@@ -53,7 +53,7 @@ export function AlertsBell() {
           <ul className="max-h-96 divide-y overflow-y-auto">
             {alerts.map((a) => (
               <li key={a.id}>
-                <Link href={`/trends/${a.trend_slug}`} className="block px-4 py-3 hover:bg-muted">
+                <Link href={`/trends/${a.trend_slug}`} className="block px-4 py-3 transition-colors duration-200 hover:bg-muted">
                   <p className="flex justify-between gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
                     <span>{KIND_LABEL[a.kind]}</span><span className="normal-case tracking-normal">{dayLabel(a.date)}</span>
                   </p>

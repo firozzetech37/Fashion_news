@@ -4,7 +4,7 @@ import Link from "next/link"
 import { cn } from "cn"
 import { TrendGrid, TrendGridSkeleton } from "@/components/trends/trend-grid"
 
-export const metadata: Metadata = { title: "Trending | TrendScope" }
+export const metadata: Metadata = { title: "Trending" }
 
 const VERTICALS = [["", "All"], ["fashion", "Fashion"], ["bollywood", "Bollywood"], ["hollywood", "Hollywood"], ["runway", "Runway"]]
 const TYPES = [
@@ -16,7 +16,7 @@ export default function TrendingPage({ searchParams }: PageProps<"/trending">) {
   return (
     <div className="container mx-auto space-y-10 px-4 py-12 md:px-8">
       <header className="max-w-2xl space-y-2">
-        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Trend radar</p>
+        <p className="eyebrow text-muted-foreground">Trend radar</p>
         <h1 className="font-serif text-4xl font-bold tracking-tight md:text-5xl">What&apos;s trending</h1>
         <p className="text-muted-foreground">
           Every trend is scored 0–100 from mention growth, source diversity, celebrity influence, brand adoption,
@@ -35,11 +35,11 @@ export default function TrendingPage({ searchParams }: PageProps<"/trending">) {
                 <FilterRow options={TYPES} current={type} param="type" other={{ vertical }} label="Filter by type" />
               </div>
               <section className="space-y-4">
-                <h2 className="font-serif text-2xl font-bold">Top trends</h2>
+                <h2 className="font-serif text-2xl font-semibold tracking-tight">Top trends</h2>
                 <TrendGrid path={`/api/trends/?status=trending,peak,rising,emerging&sort=score&limit=24&${filters}`} empty="No trends match these filters yet." />
               </section>
               <section className="space-y-4">
-                <h2 className="font-serif text-2xl font-bold">Cooling off</h2>
+                <h2 className="font-serif text-2xl font-semibold tracking-tight">Cooling off</h2>
                 <TrendGrid path={`/api/trends/?status=declining&sort=score&limit=8&${filters}`} empty="Nothing is declining right now." />
               </section>
             </div>

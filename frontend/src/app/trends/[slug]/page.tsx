@@ -6,6 +6,7 @@ import { notFound } from "next/navigation"
 import { ArrowLeft, ExternalLink, Sparkles } from "lucide-react"
 import { cn } from "cn"
 import { StatusBadge } from "@/components/trends/status-badge"
+import { SectionHeader } from "@/components/ui/section-header"
 import { ForecastPanel } from "@/components/trends/forecast-panel"
 import { MentionsChart, ScoreHistoryChart } from "@/components/trends/trend-charts"
 import {
@@ -13,7 +14,7 @@ import {
   type NamedCount, type TrendDetail, type TrendStatus,
 } from "@/lib/trends"
 
-export const metadata: Metadata = { title: "Trend | TrendScope" }
+export const metadata: Metadata = { title: "Trend" }
 
 export default function TrendPage({ params }: PageProps<"/trends/[slug]">) {
   return (
@@ -39,9 +40,9 @@ async function TrendContent({ slug }: { slug: string }) {
   return (
     <div className="mt-6 space-y-12">
       {/* Hero */}
-      <header className="grid gap-8 border-b pb-10 md:grid-cols-[1fr_auto] md:items-end">
+      <header className="grid gap-8 border-b border-foreground/10 pb-10 md:grid-cols-[1fr_auto] md:items-end">
         <div className="space-y-3">
-          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+          <p className="eyebrow text-muted-foreground">
             {[trend.type, trend.category].filter(Boolean).join(" · ")}
           </p>
           <h1 className="font-serif text-4xl font-bold tracking-tight md:text-6xl">{trend.name}</h1>
@@ -51,13 +52,13 @@ async function TrendContent({ slug }: { slug: string }) {
         </div>
         <div className="flex items-end gap-8">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Trend score</p>
+            <p className="eyebrow text-muted-foreground">Trend score</p>
             <p className="font-serif text-6xl font-bold tabular-nums leading-none">
               {Math.round(trend.trend_score)}<span className="text-2xl text-muted-foreground">/100</span>
             </p>
           </div>
           <div className="space-y-2 pb-1">
-            <StatusBadge status={trend.status} className="text-sm" />
+            <StatusBadge status={trend.status} size="lg" />
             <p className="text-sm font-medium tabular-nums">{formatGrowth(trend.growth_pct, trend.status)} share of voice</p>
           </div>
         </div>
@@ -67,10 +68,10 @@ async function TrendContent({ slug }: { slug: string }) {
         <div className="space-y-12 min-w-0">
           {/* Why is this trending */}
           <section className="rounded-2xl bg-muted/40 p-6 ring-1 ring-foreground/10 md:p-8">
-            <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest">
+            <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em]">
               <Sparkles className="size-4" /> Why is this trending?
             </h2>
-            {ai?.why_trending && <p className="mt-4 font-serif text-xl leading-relaxed">{ai.why_trending}</p>}
+            {ai?.why_trending && <p className="mt-4 font-serif text-xl leading-relaxed md:text-2xl md:leading-relaxed">{ai.why_trending}</p>}
             {stats && (
               <dl className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
                 <Fact label={`Stories, last ${stats.window_days} days`} value={stats.mentions_current} />
@@ -122,7 +123,7 @@ async function TrendContent({ slug }: { slug: string }) {
           {/* Coverage */}
           <section className="space-y-4">
             <SectionTitle title="Coverage" subtitle="Stories mentioning this trend" />
-            <ul className="divide-y rounded-xl ring-1 ring-foreground/10">
+            <ul className="divide-y rounded-xl shadow-soft ring-1 ring-foreground/10">
               {trend.articles.map((a) => (
                 <li key={a.id} className="flex gap-4 p-4">
                   {a.image_url ? (
@@ -157,7 +158,7 @@ async function TrendContent({ slug }: { slug: string }) {
               <div className="flex flex-wrap gap-2">
                 {trend.related.map((r) => (
                   <Link key={r.slug} href={`/trends/${r.slug}`}
-                    className="rounded-full px-3 py-1 text-sm ring-1 ring-foreground/15 hover:bg-muted">
+                    className="rounded-full px-3 py-1 text-sm ring-1 ring-foreground/15 transition-colors duration-200 hover:bg-muted">
                     {r.name}
                   </Link>
                 ))}
@@ -171,19 +172,14 @@ async function TrendContent({ slug }: { slug: string }) {
 }
 
 function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
-  return (
-    <div>
-      <h2 className="font-serif text-2xl font-bold">{title}</h2>
-      {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
-    </div>
-  )
+  return <SectionHeader title={title} subtitle={subtitle} size="md" />
 }
 
 function Fact({ label, value }: { label: string; value: number }) {
   return (
     <div>
       <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="font-serif text-3xl font-bold tabular-nums">{value}</dd>
+      <dd className="font-serif text-3xl font-semibold tracking-tight tabular-nums">{value}</dd>
     </div>
   )
 }
@@ -192,7 +188,7 @@ function Bullets({ title, items }: { title: string; items: string[] }) {
   if (!items.length) return null
   return (
     <div>
-      <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{title}</h3>
+      <h3 className="eyebrow text-muted-foreground">{title}</h3>
       <ul className="mt-2 list-disc space-y-1 pl-4 text-sm">
         {items.map((d) => <li key={d}>{d}</li>)}
       </ul>
@@ -203,7 +199,7 @@ function Bullets({ title, items }: { title: string; items: string[] }) {
 function Outlook({ title, text }: { title: string; text: string }) {
   return (
     <div className="rounded-xl p-5 ring-1 ring-foreground/10">
-      <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{title}</h3>
+      <h3 className="eyebrow text-muted-foreground">{title}</h3>
       <p className="mt-2 text-sm leading-relaxed">{text}</p>
     </div>
   )

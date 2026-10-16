@@ -370,7 +370,7 @@ export function SourcesManager() {
       </div>
 
       {/* Sources table */}
-      <div className="overflow-x-auto rounded-xl ring-1 ring-foreground/10">
+      <div className="overflow-x-auto rounded-xl shadow-soft ring-1 ring-foreground/10">
         <table className="w-full min-w-[900px] text-sm">
           <thead className="bg-muted/40 text-left text-xs uppercase tracking-wider text-muted-foreground">
             <tr>
@@ -470,8 +470,8 @@ function StatCard({ label, value, hint }: { label: string; value: string; hint?:
   return (
     <Card size="sm">
       <CardContent className="space-y-1">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
-        <p className="font-serif text-2xl font-bold tabular-nums">{value}</p>
+        <p className="eyebrow text-muted-foreground">{label}</p>
+        <p className="font-serif text-2xl font-semibold tracking-tight tabular-nums">{value}</p>
         {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
       </CardContent>
     </Card>

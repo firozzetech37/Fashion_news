@@ -8,7 +8,7 @@ import { StatusBadge } from "@/components/trends/status-badge"
 import { ApiUnavailable, TrendGridSkeleton } from "@/components/trends/trend-grid"
 import { getJSON, type AnalyticsOverview, type Mover } from "@/lib/trends"
 
-export const metadata: Metadata = { title: "Analytics | TrendScope" }
+export const metadata: Metadata = { title: "Analytics" }
 
 const TYPE_LABELS: Record<string, string> = {
   color: "Rising colors", clothing: "Clothing", fabric: "Fabrics", footwear: "Footwear",
@@ -19,7 +19,7 @@ export default function AnalyticsPage() {
   return (
     <div className="container mx-auto space-y-12 px-4 py-12 md:px-8">
       <header className="max-w-2xl space-y-2">
-        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Intelligence</p>
+        <p className="eyebrow text-muted-foreground">Intelligence</p>
         <h1 className="font-serif text-4xl font-bold tracking-tight md:text-5xl">Analytics</h1>
         <p className="text-muted-foreground">How trends are moving: lifecycle, momentum over time, and this week&apos;s biggest movers.</p>
       </header>
@@ -43,13 +43,13 @@ async function AnalyticsContent() {
             <Stat label="New this week" value={data.new_this_week} />
           </dl>
           <div className="space-y-3">
-            <h2 className="font-serif text-xl font-bold">Lifecycle</h2>
+            <h2 className="font-serif text-xl font-semibold">Lifecycle</h2>
             <LifecycleBars counts={data.lifecycle} />
           </div>
         </section>
         <section className="min-w-0 space-y-3">
           <div>
-            <h2 className="font-serif text-2xl font-bold">Momentum: today&apos;s top trends</h2>
+            <h2 className="font-serif text-2xl font-semibold tracking-tight">Momentum: today&apos;s top trends</h2>
             <p className="text-sm text-muted-foreground">Daily trend score since these trends were first detected (up to 30 days). Hover for each day&apos;s lifecycle stage.</p>
           </div>
           <HistoryCompare series={data.history_series} data={data.history} />
@@ -62,11 +62,11 @@ async function AnalyticsContent() {
       </div>
 
       <section className="space-y-5">
-        <h2 className="font-serif text-2xl font-bold">Leaders by category</h2>
+        <h2 className="font-serif text-2xl font-semibold tracking-tight">Leaders by category</h2>
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {Object.entries(data.type_leaders).filter(([, list]) => list.length).map(([type, list]) => (
             <div key={type} className="space-y-2">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{TYPE_LABELS[type] ?? type}</h3>
+              <h3 className="eyebrow text-muted-foreground">{TYPE_LABELS[type] ?? type}</h3>
               <ol className="space-y-1.5">
                 {list.map((t, i) => (
                   <li key={t.slug} className="flex items-baseline justify-between gap-3 text-sm">
@@ -99,11 +99,11 @@ function MoverTable({ title, subtitle, movers, up = false }: { title: string; su
   return (
     <section className="space-y-3">
       <div>
-        <h2 className="font-serif text-2xl font-bold">{title}</h2>
+        <h2 className="font-serif text-2xl font-semibold tracking-tight">{title}</h2>
         <p className="text-sm text-muted-foreground">{subtitle}</p>
       </div>
       {movers.length === 0 ? <p className="text-sm text-muted-foreground">Not enough history yet.</p> : (
-        <ul className="divide-y rounded-xl ring-1 ring-foreground/10">
+        <ul className="divide-y rounded-xl shadow-soft ring-1 ring-foreground/10">
           {movers.map((m) => (
             <li key={m.slug} className="flex items-center justify-between gap-3 px-4 py-3">
               <div className="flex min-w-0 items-center gap-3">

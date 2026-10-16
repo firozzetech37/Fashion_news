@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { EntityDetailView, EntitySkeleton } from "@/components/entities/entity-detail"
 
-export const metadata: Metadata = { title: "Brands | TrendScope" }
+export const metadata: Metadata = { title: "Brands" }
 
 export default function Page({ params }: PageProps<"/brands/[slug]">) {
   return (

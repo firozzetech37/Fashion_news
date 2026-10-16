@@ -4,7 +4,7 @@ import { TrendCard } from "@/components/trends/trend-card"
 import { ApiUnavailable, TrendGridSkeleton } from "@/components/trends/trend-grid"
 import { FORECAST_LABELS, getJSON, type ForecastData } from "@/lib/trends"
 
-export const metadata: Metadata = { title: "Forecast | TrendScope" }
+export const metadata: Metadata = { title: "Forecast" }
 
 const ORDER = ["breaking_out", "likely_to_peak", "sustained", "steady", "declining"] as const
 
@@ -12,7 +12,7 @@ export default function ForecastPage() {
   return (
     <div className="container mx-auto space-y-12 px-4 py-12 md:px-8">
       <header className="max-w-2xl space-y-2">
-        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Intelligence</p>
+        <p className="eyebrow text-muted-foreground">Intelligence</p>
         <h1 className="font-serif text-4xl font-bold tracking-tight md:text-5xl">Where trends are going</h1>
         <p className="text-muted-foreground">
           A statistical forecast from each trend&apos;s daily score history: how fast it&apos;s moving, and whether the climb is
@@ -34,7 +34,7 @@ async function ForecastGroups() {
       {ORDER.filter((label) => data.groups[label]?.length).map((label) => (
         <section key={label} className="space-y-4">
           <div>
-            <h2 className="font-serif text-2xl font-bold">{FORECAST_LABELS[label].title} <span className="text-base font-normal text-muted-foreground">{data.groups[label].length}</span></h2>
+            <h2 className="font-serif text-2xl font-semibold tracking-tight">{FORECAST_LABELS[label].title} <span className="text-base font-normal text-muted-foreground">{data.groups[label].length}</span></h2>
             <p className="text-sm text-muted-foreground">{FORECAST_LABELS[label].description}</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

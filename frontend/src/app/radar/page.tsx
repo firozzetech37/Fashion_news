@@ -7,7 +7,7 @@ import { StatusBadge } from "@/components/trends/status-badge"
 import { ApiUnavailable } from "@/components/trends/trend-grid"
 import { formatGrowth, getJSON, type RadarPoint } from "@/lib/trends"
 
-export const metadata: Metadata = { title: "Trend Radar | TrendScope" }
+export const metadata: Metadata = { title: "Trend Radar" }
 
 const VERTICALS = [["", "All"], ["fashion", "Fashion"], ["bollywood", "Bollywood"], ["hollywood", "Hollywood"], ["runway", "Runway"]]
 
@@ -15,7 +15,7 @@ export default function RadarPage({ searchParams }: PageProps<"/radar">) {
   return (
     <div className="container mx-auto space-y-8 px-4 py-12 md:px-8">
       <header className="max-w-2xl space-y-2">
-        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Intelligence</p>
+        <p className="eyebrow text-muted-foreground">Intelligence</p>
         <h1 className="font-serif text-4xl font-bold tracking-tight md:text-5xl">Trend Radar</h1>
         <p className="text-muted-foreground">
           Every active trend at a glance: how far along its lifecycle it is, what kind of trend it is, and how strong the signal is.
@@ -46,7 +46,7 @@ async function RadarContent({ vertical }: { vertical: string }) {
         <>
           <TrendRadar points={points} />
           {/* Table view: the same data, readable without the chart */}
-          <details className="rounded-xl ring-1 ring-foreground/10">
+          <details className="rounded-xl shadow-soft ring-1 ring-foreground/10">
             <summary className="cursor-pointer px-4 py-3 text-sm font-medium">View as table ({points.length} trends)</summary>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[560px] text-sm">

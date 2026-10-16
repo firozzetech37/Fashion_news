@@ -72,7 +72,7 @@ export function AskPanel({ initialQuestion, compact = false }: { initialQuestion
             </p>
             <div className="flex flex-wrap gap-2">
               {EXAMPLE_QUESTIONS.map((q) => (
-                <button key={q} onClick={() => ask(q)} className="rounded-full px-3 py-1.5 text-left text-sm ring-1 ring-foreground/15 hover:bg-muted">
+                <button key={q} onClick={() => ask(q)} className="rounded-full px-3 py-1.5 text-left text-sm ring-1 ring-foreground/15 transition-colors duration-200 hover:bg-muted">
                   {q}
                 </button>
               ))}
@@ -117,11 +117,11 @@ function Answer({ response: r, onAsk, compact }: { response: AskResponse; onAsk:
       </p>
       {r.trends.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Trends</h4>
+          <h4 className="eyebrow text-muted-foreground">Trends</h4>
           <ul className={cn("grid gap-2", !compact && "sm:grid-cols-2")}>
             {r.trends.map(({ trend, reason }) => (
               <li key={trend.slug}>
-                <Link href={`/trends/${trend.slug}`} className="block rounded-lg p-3 ring-1 ring-foreground/10 hover:bg-muted">
+                <Link href={`/trends/${trend.slug}`} className="block rounded-lg p-3 ring-1 ring-foreground/10 transition-colors duration-200 hover:bg-muted">
                   <span className="flex items-baseline justify-between gap-2">
                     <span className="font-serif font-semibold">{trend.name}</span>
                     <span className="text-xs tabular-nums text-muted-foreground">{Math.round(trend.trend_score)} · {trend.status}</span>
@@ -135,7 +135,7 @@ function Answer({ response: r, onAsk, compact }: { response: AskResponse; onAsk:
       )}
       {r.articles.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Sources</h4>
+          <h4 className="eyebrow text-muted-foreground">Sources</h4>
           <ol className="space-y-1.5 text-sm">
             {r.articles.map((a, i) => (
               <li key={a.id} className="flex gap-2">
@@ -151,7 +151,7 @@ function Answer({ response: r, onAsk, compact }: { response: AskResponse; onAsk:
       {r.follow_up_questions.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {r.follow_up_questions.map((q) => (
-            <button key={q} onClick={() => onAsk(q)} className="rounded-full px-3 py-1.5 text-left text-xs ring-1 ring-foreground/15 hover:bg-muted">{q}</button>
+            <button key={q} onClick={() => onAsk(q)} className="rounded-full px-3 py-1.5 text-left text-xs ring-1 ring-foreground/15 transition-colors duration-200 hover:bg-muted">{q}</button>
           ))}
         </div>
       )}

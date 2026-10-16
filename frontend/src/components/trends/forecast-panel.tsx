@@ -10,15 +10,15 @@ export function ForecastPanel({ forecast, score }: { forecast: Forecast | null; 
   return (
     <div className="grid gap-4 rounded-xl p-5 ring-1 ring-foreground/10 sm:grid-cols-[1fr_auto] sm:items-center">
       <div className="space-y-1">
-        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Statistical forecast</p>
-        <p className="flex items-center gap-2 font-serif text-2xl font-bold"><Icon className="size-5" aria-hidden /> {meta.title}</p>
+        <p className="eyebrow text-muted-foreground">Statistical forecast</p>
+        <p className="flex items-center gap-2 font-serif text-2xl font-semibold tracking-tight"><Icon className="size-5" aria-hidden /> {meta.title}</p>
         <p className="text-sm text-muted-foreground">{meta.description}</p>
       </div>
       {!early && (
         <dl className="grid grid-cols-3 gap-5 text-sm">
-          <div><dt className="text-xs text-muted-foreground">Next week</dt><dd className="font-serif text-2xl font-bold tabular-nums">{Math.round(forecast.projected_score_7d)}</dd><dd className="text-xs text-muted-foreground">from {Math.round(score)}</dd></div>
-          <div><dt className="text-xs text-muted-foreground">Per day</dt><dd className="font-serif text-2xl font-bold tabular-nums">{forecast.slope_per_day > 0 ? "+" : ""}{forecast.slope_per_day.toFixed(1)}</dd><dd className="text-xs text-muted-foreground">last 7 days</dd></div>
-          <div><dt className="text-xs text-muted-foreground">Confidence</dt><dd className="font-serif text-2xl font-bold tabular-nums">{Math.round(forecast.confidence * 100)}%</dd><dd className="text-xs text-muted-foreground">{forecast.history_days} days of data</dd></div>
+          <div><dt className="text-xs text-muted-foreground">Next week</dt><dd className="font-serif text-2xl font-semibold tracking-tight tabular-nums">{Math.round(forecast.projected_score_7d)}</dd><dd className="text-xs text-muted-foreground">from {Math.round(score)}</dd></div>
+          <div><dt className="text-xs text-muted-foreground">Per day</dt><dd className="font-serif text-2xl font-semibold tracking-tight tabular-nums">{forecast.slope_per_day > 0 ? "+" : ""}{forecast.slope_per_day.toFixed(1)}</dd><dd className="text-xs text-muted-foreground">last 7 days</dd></div>
+          <div><dt className="text-xs text-muted-foreground">Confidence</dt><dd className="font-serif text-2xl font-semibold tracking-tight tabular-nums">{Math.round(forecast.confidence * 100)}%</dd><dd className="text-xs text-muted-foreground">{forecast.history_days} days of data</dd></div>
         </dl>
       )}
     </div>

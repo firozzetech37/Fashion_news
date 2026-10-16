@@ -178,8 +178,8 @@ export function AIPipelineDashboard() {
       {/* Failures */}
       {data.recent_failures.length > 0 && (
         <section className="space-y-3">
-          <h2 className="font-serif text-2xl font-bold">Failures</h2>
-          <div className="overflow-x-auto rounded-xl ring-1 ring-foreground/10">
+          <h2 className="font-serif text-2xl font-semibold tracking-tight">Failures</h2>
+          <div className="overflow-x-auto rounded-xl shadow-soft ring-1 ring-foreground/10">
             <table className="w-full min-w-[720px] text-sm">
               <thead className="bg-muted/40 text-left text-xs uppercase tracking-wider text-muted-foreground">
                 <tr>
@@ -214,7 +214,7 @@ export function AIPipelineDashboard() {
       {/* Latest results */}
       <section className="space-y-3">
         <div className="flex items-baseline justify-between">
-          <h2 className="font-serif text-2xl font-bold">Latest intelligence</h2>
+          <h2 className="font-serif text-2xl font-semibold tracking-tight">Latest intelligence</h2>
           <span className="text-sm text-muted-foreground">Most recently processed</span>
         </div>
         {data.recent_processed.length === 0 ? (
@@ -301,8 +301,8 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
   return (
     <Card size="sm">
       <CardContent className="space-y-1">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
-        <p className="font-serif text-2xl font-bold tabular-nums">{value}</p>
+        <p className="eyebrow text-muted-foreground">{label}</p>
+        <p className="font-serif text-2xl font-semibold tracking-tight tabular-nums">{value}</p>
         {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
       </CardContent>
     </Card>

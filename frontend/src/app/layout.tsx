@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/navigation/navbar";
@@ -16,9 +16,25 @@ const playfair = Playfair_Display({
   variable: "--font-serif",
 });
 
+const description = "Discover what's trending before it becomes mainstream. AI fashion intelligence from fashion, celebrity culture, brands and global media.";
+
 export const metadata: Metadata = {
-  title: "TrendScope | AI Fashion Intelligence",
-  description: "Discover what's trending before it becomes mainstream.",
+  title: {
+    default: "TrendScope | AI Fashion Intelligence",
+    template: "%s | TrendScope",
+  },
+  description,
+  applicationName: "TrendScope",
+  openGraph: {
+    siteName: "TrendScope",
+    title: "TrendScope | AI Fashion Intelligence",
+    description,
+    type: "website",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({

@@ -7,21 +7,23 @@ export function EntityCard({ entity, className }: { entity: EntitySummary; class
   const isCelebrity = entity.kind === "celebrity"
   return (
     <Link href={entityPath(entity)} className={cn("group block space-y-3", className)}>
-      <div className={cn("overflow-hidden rounded-xl bg-muted", isCelebrity ? "aspect-[3/4]" : "aspect-[4/3]")}>
+      <div className={cn("photo-edge relative overflow-hidden rounded-xl bg-muted", isCelebrity ? "aspect-[3/4]" : "aspect-[4/3]")}>
         {entity.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element -- publisher images come from arbitrary hosts
-          <img src={entity.image_url} alt={entity.image_headline ?? entity.name}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          <img src={entity.image_url} alt={entity.image_headline ?? entity.name} loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-700 ease-out-expo group-hover:scale-[1.04]" />
         ) : (
-          <div className="flex h-full items-center justify-center font-serif text-4xl text-muted-foreground/50">
+          <div className="flex h-full items-center justify-center font-serif text-5xl text-muted-foreground/40">
             {entity.name.slice(0, 1)}
           </div>
         )}
       </div>
       <div className="space-y-1">
         <div className="flex items-baseline justify-between gap-2">
-          <h3 className="font-serif text-lg font-medium leading-tight group-hover:underline">{entity.name}</h3>
-          <span className="shrink-0 text-xs tabular-nums text-muted-foreground" title="Influence score">
+          <h3 className="font-serif text-lg font-semibold leading-tight">
+            <span className="link-reveal">{entity.name}</span>
+          </h3>
+          <span className="shrink-0 font-serif text-sm tabular-nums text-muted-foreground" title="Influence score">
             {Math.round(entity.influence_score)}
           </span>
         </div>

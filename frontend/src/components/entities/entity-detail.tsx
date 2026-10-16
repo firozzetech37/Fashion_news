@@ -29,7 +29,7 @@ export async function EntityDetailView({ kind, slug }: { kind: EntityKind; slug:
         </div>
         <div className="space-y-5">
           <div className="space-y-2">
-            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{facts.join(" · ")}</p>
+            <p className="eyebrow text-muted-foreground">{facts.join(" · ")}</p>
             <h1 className="font-serif text-5xl font-bold tracking-tight md:text-6xl">{entity.name}</h1>
           </div>
           <dl className="flex flex-wrap gap-x-10 gap-y-4">
@@ -47,13 +47,13 @@ export async function EntityDetailView({ kind, slug }: { kind: EntityKind; slug:
         <div className="min-w-0 space-y-12">
           {entity.top_trends.length > 0 && (
             <section className="space-y-4">
-              <h2 className="font-serif text-2xl font-bold">
+              <h2 className="font-serif text-2xl font-semibold tracking-tight">
                 {kind === "celebrity" ? "What they're influencing" : "Trends they're part of"}
               </h2>
               <div className="flex flex-wrap gap-2">
                 {entity.top_trends.map((t) => (
                   <Link key={t.slug} href={`/trends/${t.slug}`}
-                    className="rounded-full px-4 py-2 text-sm ring-1 ring-foreground/15 hover:bg-muted">
+                    className="rounded-full px-4 py-2 text-sm ring-1 ring-foreground/15 transition-colors duration-200 hover:bg-muted">
                     {t.name} {t.count > 1 && <span className="text-muted-foreground">· {t.count}</span>}
                   </Link>
                 ))}
@@ -63,7 +63,7 @@ export async function EntityDetailView({ kind, slug }: { kind: EntityKind; slug:
 
           {entity.looks.length > 0 && (
             <section className="space-y-4">
-              <h2 className="font-serif text-2xl font-bold">{kind === "celebrity" ? "Recent looks" : "Recent moments"}</h2>
+              <h2 className="font-serif text-2xl font-semibold tracking-tight">{kind === "celebrity" ? "Recent looks" : "Recent moments"}</h2>
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 {entity.looks.map((a) => (
                   <a key={a.id} href={a.url} target="_blank" rel="noreferrer" className="group space-y-2">
@@ -79,8 +79,8 @@ export async function EntityDetailView({ kind, slug }: { kind: EntityKind; slug:
           )}
 
           <section className="space-y-4">
-            <h2 className="font-serif text-2xl font-bold">Coverage</h2>
-            <ul className="divide-y rounded-xl ring-1 ring-foreground/10">
+            <h2 className="font-serif text-2xl font-semibold tracking-tight">Coverage</h2>
+            <ul className="divide-y rounded-xl shadow-soft ring-1 ring-foreground/10">
               {entity.articles.map((a) => (
                 <li key={a.id} className="space-y-1 p-4">
                   <a href={a.url} target="_blank" rel="noreferrer" className="font-medium leading-snug hover:underline">
@@ -96,7 +96,7 @@ export async function EntityDetailView({ kind, slug }: { kind: EntityKind; slug:
 
         {entity.related.length > 0 && (
           <aside className="space-y-3">
-            <h2 className="font-serif text-2xl font-bold">{kind === "celebrity" ? "Brands worn & mentioned" : "Celebrities linked"}</h2>
+            <h2 className="font-serif text-2xl font-semibold tracking-tight">{kind === "celebrity" ? "Brands worn & mentioned" : "Celebrities linked"}</h2>
             <ul className="space-y-2">
               {entity.related.map((r) => (
                 <li key={r.slug} className="flex justify-between text-sm">

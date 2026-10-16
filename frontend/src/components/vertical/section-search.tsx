@@ -174,7 +174,7 @@ export function SectionSearch({ vertical, label }: { vertical: Vertical; label: 
                 </label>
               )}
               <button onClick={fetchNews} disabled={fetching}
-                className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium ring-1 ring-foreground/20 hover:bg-muted disabled:opacity-50">
+                className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium ring-1 ring-foreground/20 transition-colors duration-200 hover:bg-muted disabled:opacity-50">
                 <Download className="size-4" aria-hidden /> {fetching ? "Fetching latest news…" : `Fetch latest news about “${searched}”`}
               </button>
             </div>
@@ -224,7 +224,7 @@ export function SectionSearch({ vertical, label }: { vertical: Vertical; label: 
           {people.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {people.map((p) => (
-                <Link key={p.id} href={entityPath(p)} className="rounded-full px-3 py-1.5 text-sm ring-1 ring-foreground/15 hover:bg-muted">
+                <Link key={p.id} href={entityPath(p)} className="rounded-full px-3 py-1.5 text-sm ring-1 ring-foreground/15 transition-colors duration-200 hover:bg-muted">
                   {p.name} <span className="text-xs text-muted-foreground">· {p.kind}</span>
                 </Link>
               ))}
@@ -246,7 +246,7 @@ function StoryList({ articles, heading }: { articles: Article[]; heading: string
   if (!articles.length) return null
   return (
     <div className="space-y-2">
-      <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{heading}</h3>
+      <h3 className="eyebrow text-muted-foreground">{heading}</h3>
       <ul className="divide-y">
         {articles.slice(0, 12).map((a) => (
           <li key={a.id} className="flex gap-3 py-3">
