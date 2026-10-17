@@ -45,10 +45,14 @@ class Settings(BaseSettings):
     SEARCH_INTEREST_ENABLED: bool = True
     SEARCH_TRENDS_PER_RUN: int = 6          # trends checked per scheduled run (top-scored stale trends first)
     SEARCH_REFRESH_HOURS: int = 72          # a trend's search data is re-fetched after this long
+    SEARCH_RETRY_HOURS: int = 12            # a lookup that failed is retried after this long
     SEARCH_MAX_AGE_DAYS: int = 7            # older search data is ignored by the score
     SEARCH_MIN_TRENDS: int = 5              # the score uses search interest only once this many trends have it
     SEARCH_GEO: str = ""                    # "" = worldwide; a country code (US, GB...) for one market
     SEARCH_DELAY_SECONDS: float = 4.0       # pause between trends, to stay under Google's limits
+    # Google refuses requests from Render, so by default the GitHub Actions job does the lookups and uploads
+    # them (backend/scripts/fetch_search_interest.py). True = the API's scheduled tick also tries itself.
+    SEARCH_FETCH_IN_API: bool = False
 
     # Proxies in front of the API that append to X-Forwarded-For (Render: 1). 0 = use the direct
     # connection address and ignore the header, so a client can't fake its IP to dodge rate limits.

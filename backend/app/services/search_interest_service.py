@@ -15,6 +15,13 @@ Being polite to Google
   Google Trends has no official API; this uses the same public endpoints as its website. It blocks clients
   that ask too often (HTTP 429), so each run checks a few trends (SEARCH_TRENDS_PER_RUN), pauses between them,
   refreshes each one only every SEARCH_REFRESH_HOURS, and stops for the run at the first refusal.
+
+Where the lookups run
+  Google refuses requests from Render's servers outright, so in production the GitHub Actions job does the
+  lookups (backend/scripts/fetch_search_interest.py): it asks GET /api/jobs/search-queue for the next trends,
+  queries Google from the GitHub runner and sends the series to POST /api/jobs/search-results, which stores
+  them with store_result(). refresh_search_interest() does the same in-process, for local runs and Celery;
+  the API's scheduled tick only uses it when SEARCH_FETCH_IN_API is on.
 """
 import json
 import logging
@@ -136,16 +143,34 @@ def _upsert(db: Session, row: dict):
 
 
 def stale_trends(db: Session, limit: int, geo: str) -> list[tuple[str, str]]:
-    """Top-scored active trends whose search data is missing or older than SEARCH_REFRESH_HOURS."""
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=settings.SEARCH_REFRESH_HOURS)
+    """Top-scored active trends whose search data is missing, older than SEARCH_REFRESH_HOURS, or whose last
+    lookup failed more than SEARCH_RETRY_HOURS ago."""
+    now = datetime.now(timezone.utc)
+    refresh_cutoff = now - timedelta(hours=settings.SEARCH_REFRESH_HOURS)
+    retry_cutoff = now - timedelta(hours=settings.SEARCH_RETRY_HOURS)
     return (
         db.query(Trend.id, Trend.name)
         .outerjoin(TrendSearchInterest, (TrendSearchInterest.trend_id == Trend.id) & (TrendSearchInterest.geo == geo))
-        .filter(Trend.trend_score > 0, or_(TrendSearchInterest.id.is_(None), TrendSearchInterest.fetched_at < cutoff))
+        .filter(Trend.trend_score > 0, or_(
+            TrendSearchInterest.id.is_(None),
+            TrendSearchInterest.fetched_at < refresh_cutoff,
+            TrendSearchInterest.error.isnot(None) & (TrendSearchInterest.fetched_at < retry_cutoff),
+        ))
         .order_by(Trend.trend_score.desc())
         .limit(limit)
         .all()
     )
+
+
+def store_result(db: Session, trend_id: str, keyword: str, geo: str, series: list[tuple[str, int]] | None,
+                 error: str | None = None) -> dict:
+    """Save one lookup. A failed lookup is recorded too, so one bad keyword doesn't block the queue."""
+    summary = summarize(series or []) if error is None else \
+        {"has_data": False, "recent_avg": None, "previous_avg": None, "growth_pct": None}
+    _upsert(db, {"trend_id": trend_id, "geo": geo, "keyword": keyword, "fetched_at": datetime.now(timezone.utc),
+                 "series": [list(p) for p in series] if series and error is None else None,
+                 **summary, "error": error[:300] if error else None})
+    return summary
 
 
 def refresh_search_interest(db: Session, limit: int | None = None, client: GoogleTrendsClient | None = None) -> dict:
@@ -161,7 +186,6 @@ def refresh_search_interest(db: Session, limit: int | None = None, client: Googl
         for i, (trend_id, name) in enumerate(todo):
             if i:
                 time.sleep(settings.SEARCH_DELAY_SECONDS)
-            now = datetime.now(timezone.utc)
             try:
                 series = client.interest_over_time(name, geo)
             except SearchRateLimited:
@@ -169,16 +193,11 @@ def refresh_search_interest(db: Session, limit: int | None = None, client: Googl
                 break
             except (SearchFetchError, ValueError, KeyError) as exc:
                 log.warning("search interest for %r failed: %s", name, exc)
-                # Record the attempt so one bad keyword doesn't block the queue on every run
-                _upsert(db, {"trend_id": trend_id, "geo": geo, "keyword": name, "fetched_at": now,
-                             "series": None, "has_data": False, "recent_avg": None, "previous_avg": None,
-                             "growth_pct": None, "error": str(exc)[:300]})
+                store_result(db, trend_id, name, geo, None, str(exc))
                 db.commit()
                 result["errors"] += 1
                 continue
-            summary = summarize(series)
-            _upsert(db, {"trend_id": trend_id, "geo": geo, "keyword": name, "fetched_at": now,
-                         "series": [list(p) for p in series], **summary, "error": None})
+            summary = store_result(db, trend_id, name, geo, series)
             db.commit()
             result["checked"] += 1
             result["with_data"] += summary["has_data"]

@@ -1,6 +1,7 @@
 # Runs TrendScope's background work on the free Render plan (which has no worker):
-# every 30 minutes the API collects news, fetches tracked topics, AI-processes new stories, checks Google
-# search interest for a few trends, and runs the trend engine when it's due (hourly).
+# every 30 minutes the API collects news, fetches tracked topics, AI-processes new stories and runs the
+# trend engine when it's due (hourly). This runner also looks up Google search interest for a few trends
+# and uploads it, because Google refuses requests from Render's servers.
 #
 # Repo secrets needed (Settings -> Secrets and variables -> Actions):
 #   TRENDSCOPE_API_URL     e.g. https://trendscope-api.onrender.com
@@ -27,9 +28,10 @@ concurrency:
 jobs:
   trigger:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - name: Trigger the TrendScope job
+        if: ${{ inputs.job != 'search' }}  # a manual "search" run only does the lookups below
         env:
           API_URL: ${{ secrets.TRENDSCOPE_API_URL }}
           JOBS_TOKEN: ${{ secrets.TRENDSCOPE_JOBS_TOKEN }}
@@ -56,3 +58,19 @@ jobs:
           done
           echo "::error::The API didn't accept the job."
           exit 1
+
+      # Google refuses requests from Render, so search interest is looked up here and uploaded to the API.
+      # A refusal here never fails the run (the next run tries again).
+      - name: Check out the search script
+        if: ${{ !inputs.job || inputs.job == 'tick' || inputs.job == 'search' }}
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: backend/scripts
+      - name: Look up Google search interest
+        if: ${{ !inputs.job || inputs.job == 'tick' || inputs.job == 'search' }}
+        continue-on-error: true
+        env:
+          API_URL: ${{ secrets.TRENDSCOPE_API_URL }}
+          JOBS_TOKEN: ${{ secrets.TRENDSCOPE_JOBS_TOKEN }}
+          SEARCH_LIMIT: "6"
+        run: python3 backend/scripts/fetch_search_interest.py
