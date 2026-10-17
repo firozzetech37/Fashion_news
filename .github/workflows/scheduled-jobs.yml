@@ -35,10 +35,16 @@ jobs:
           JOBS_TOKEN: ${{ secrets.TRENDSCOPE_JOBS_TOKEN }}
           JOB: ${{ inputs.job || 'tick' }}
         run: |
+          # Secrets are pasted by hand, so drop stray whitespace and wrapping quotes.
+          API_URL=$(printf '%s' "$API_URL" | tr -d '[:space:]"'"'")
+          JOBS_TOKEN=$(printf '%s' "$JOBS_TOKEN" | tr -d '[:space:]"'"'")
           if [ -z "$API_URL" ] || [ -z "$JOBS_TOKEN" ]; then
             echo "::error::Set the TRENDSCOPE_API_URL and TRENDSCOPE_JOBS_TOKEN repository secrets."
             exit 1
           fi
+          # Only the length is printed (logs of a public repo are public). On HTTP 401, compare it with
+          # the length of JOBS_TOKEN in Render: a different length means the two values were pasted differently.
+          echo "Sending a token of ${#JOBS_TOKEN} characters"
           # A sleeping free instance can take up to a minute to wake, so allow a long first request and retry.
           for attempt in 1 2 3; do
             code=$(curl -s -o response.json -w '%{http_code}' --max-time 90 -X POST \

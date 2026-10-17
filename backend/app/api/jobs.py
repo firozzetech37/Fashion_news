@@ -30,10 +30,17 @@ _lock = threading.Lock()                 # one job at a time per API process
 _status: dict = {"running": None, "last": None}
 
 
+def _clean(value: str | None) -> str:
+    """Tokens are pasted by hand into Render and GitHub, so ignore stray whitespace and wrapping quotes."""
+    return (value or "").strip().strip("'\"").strip()
+
+
 def _check_token(token: str | None):
-    if not settings.JOBS_TOKEN:
+    expected = _clean(settings.JOBS_TOKEN)
+    if not expected:
         raise HTTPException(status_code=503, detail="Scheduled jobs are disabled (JOBS_TOKEN is not set).")
-    if not token or not hmac.compare_digest(token, settings.JOBS_TOKEN):
+    sent = _clean(token)
+    if not sent or not hmac.compare_digest(sent.encode(), expected.encode()):
         raise HTTPException(status_code=401, detail="Invalid jobs token.")
 
 
