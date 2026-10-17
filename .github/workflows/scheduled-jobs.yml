@@ -1,6 +1,6 @@
 # Runs TrendScope's background work on the free Render plan (which has no worker):
-# every 30 minutes the API collects news, fetches tracked topics, AI-processes new stories,
-# and runs the trend engine when it's due (hourly).
+# every 30 minutes the API collects news, fetches tracked topics, AI-processes new stories, checks Google
+# search interest for a few trends, and runs the trend engine when it's due (hourly).
 #
 # Repo secrets needed (Settings -> Secrets and variables -> Actions):
 #   TRENDSCOPE_API_URL     e.g. https://trendscope-api.onrender.com
@@ -18,7 +18,7 @@ on:
         description: Job to run
         type: choice
         default: tick
-        options: [tick, collect, topics, ai, trends]
+        options: [tick, collect, topics, ai, search, trends]
 
 concurrency:
   group: scheduled-jobs

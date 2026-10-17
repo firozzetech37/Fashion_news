@@ -51,6 +51,23 @@ class RelatedTrend(BaseModel):
     shared_articles: int = 0
 
 
+class SearchPoint(BaseModel):
+    date: date
+    value: int
+
+
+class SearchInterest(BaseModel):
+    """Google Trends interest for the trend's name: 0-100 where 100 is its own peak in the last 90 days."""
+    keyword: str
+    geo: str = ""
+    fetched_at: datetime
+    has_data: bool
+    recent_avg: Optional[float] = None
+    previous_avg: Optional[float] = None
+    growth_pct: Optional[float] = None
+    series: list[SearchPoint] = []
+
+
 class TrendDetail(TrendSummary):
     aliases: list[str] = []
     score_breakdown: Optional[dict[str, Optional[float]]] = None
@@ -64,6 +81,7 @@ class TrendDetail(TrendSummary):
     sources: list[NamedCount] = []
     related: list[RelatedTrend] = []
     articles: list[ArticleOut] = []
+    search_interest: Optional[SearchInterest] = None
 
 
 class TrendList(BaseModel):

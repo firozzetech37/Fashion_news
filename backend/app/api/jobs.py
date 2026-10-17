@@ -3,8 +3,9 @@
 An external scheduler (GitHub Actions) calls POST /api/jobs/run with the JOBS_TOKEN secret. The work runs
 in the API process after the response is sent:
 
-  tick    collect RSS -> fetch tracked topics -> AI-process pending articles -> trend engine if due
-  collect / topics / ai / trends   one step on its own (handy for manual runs)
+  tick    collect RSS -> fetch tracked topics -> AI-process pending articles -> Google search interest for a few
+          trends -> trend engine if due
+  collect / topics / ai / search / trends   one step on its own (handy for manual runs)
 
 Locally you can keep using the Celery worker instead; both call the same services.
 """
@@ -25,7 +26,7 @@ from app.models import Trend
 router = APIRouter()
 log = logging.getLogger("trendscope.jobs")
 
-Job = Literal["tick", "collect", "topics", "ai", "trends"]
+Job = Literal["tick", "collect", "topics", "ai", "search", "trends"]
 _lock = threading.Lock()                 # one job at a time per API process
 _status: dict = {"running": None, "last": None}
 
@@ -67,6 +68,7 @@ def _run(job: str):
     from app.services.ai_pipeline_service import process_batch
     from app.services.collector_service import collect_all_active
     from app.services.news_search_service import fetch_active_topics
+    from app.services.search_interest_service import refresh_search_interest
     from app.services.trend_service import run_trend_engine
 
     if not _lock.acquire(blocking=False):
@@ -81,6 +83,8 @@ def _run(job: str):
             _step("topics", fetch_active_topics, results)
         if job in ("tick", "ai"):
             _step("ai", lambda db: process_batch(db, settings.AI_BATCH_PER_TICK), results)
+        if job in ("tick", "search"):
+            _step("search", refresh_search_interest, results)
         if job == "trends" or (job == "tick" and _with_db(_trends_due)):
             _step("trends", run_trend_engine, results)
     finally:

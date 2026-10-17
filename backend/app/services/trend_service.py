@@ -30,10 +30,10 @@ WEIGHTS = {
     "celebrity_influence": 0.15,
     "brand_adoption": 0.15,
     "social_signals": 0.10,
-    "search_interest": 0.10,  # no search data source yet; excluded and the other weights rescaled
+    "search_interest": 0.10,  # Google Trends; only for trends with fresh search data (others rescale the rest)
     "fashion_week": 0.05,
 }
-AVAILABLE_COMPONENTS = [k for k in WEIGHTS if k != "search_interest"]
+AVAILABLE_COMPONENTS = [k for k in WEIGHTS if k != "search_interest"]  # computed from news for every trend
 EXPLANATION_MAX_AGE = timedelta(hours=24)
 EXPLANATION_SCORE_CHANGE = 10
 
@@ -237,9 +237,11 @@ def _story_count(db: Session, start: datetime, end: datetime) -> int:
     ).scalar() or 0
 
 
-def _compute_scores(db: Session, now: datetime, end: datetime):
+def _compute_scores(db: Session, now: datetime, end: datetime, use_search: bool = True):
     """Score every trend as of `now`, counting only mentions published before `end`.
 
+    use_search adds Google search interest (app/services/search_interest_service.py) for trends that have
+    fresh data. It's off for backfilled past days, since only today's search data is stored.
     Returns (trend_updates, snapshot_rows, totals). Pure computation: nothing is written.
     """
     window = timedelta(days=settings.TREND_WINDOW_DAYS)
@@ -305,7 +307,11 @@ def _compute_scores(db: Session, now: datetime, end: datetime):
         }
 
     pct = {k: _percentiles(v) for k, v in raw.items()}
-    weight_total = sum(WEIGHTS[k] for k in AVAILABLE_COMPONENTS)
+    search_pct = {}
+    if use_search:
+        from app.services.search_interest_service import fresh_search_momentum
+        search_raw = {tid: v for tid, v in fresh_search_momentum(db).items() if tid in agg}
+        search_pct = _percentiles(search_raw)
     today = now.date()
     updates, snapshots = [], []
 
@@ -319,7 +325,12 @@ def _compute_scores(db: Session, now: datetime, end: datetime):
             continue
         d = derived[trend_id]
         breakdown = {k: pct[k][trend_id] for k in AVAILABLE_COMPONENTS}
-        score = round(sum(WEIGHTS[k] * breakdown[k] for k in AVAILABLE_COMPONENTS) / weight_total, 1)
+        components = list(AVAILABLE_COMPONENTS)
+        if trend_id in search_pct:
+            breakdown["search_interest"] = search_pct[trend_id]
+            components.append("search_interest")
+        # Weighted average of the components this trend has data for
+        score = round(sum(WEIGHTS[k] * breakdown[k] for k in components) / sum(WEIGHTS[k] for k in components), 1)
         status = _status(score, d["cur"], d["prev"], d["share_cur"], d["share_prev"], len(a["s30"]))
         avg_conf = sum(a["conf"]) / len(a["conf"])
         updates.append({
@@ -330,7 +341,7 @@ def _compute_scores(db: Session, now: datetime, end: datetime):
             "momentum_score": breakdown["mention_growth"],
             "growth_pct": d["growth_pct"],
             "status": status,
-            "score_breakdown": {**breakdown, "search_interest": None},
+            "score_breakdown": {"search_interest": None, **breakdown},
             "confidence": round(min(1.0, math.log1p(len(a["s30"])) / math.log1p(10)) * avg_conf, 2),
             "stats": {
                 "window_days": settings.TREND_WINDOW_DAYS,
@@ -390,7 +401,7 @@ def backfill_snapshots(db: Session, days: int = 30) -> dict:
     for offset in range(days, 0, -1):
         day = today - timedelta(days=offset)
         end_of_day = datetime.combine(day + timedelta(days=1), datetime.min.time(), timezone.utc)
-        _, snapshots, _ = _compute_scores(db, end_of_day, end_of_day)
+        _, snapshots, _ = _compute_scores(db, end_of_day, end_of_day, use_search=False)
         for snap in snapshots:
             snap["date"] = day
         _write_snapshots(db, snapshots)

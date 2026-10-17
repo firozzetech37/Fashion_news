@@ -40,6 +40,16 @@ class Settings(BaseSettings):
     AI_BATCH_PER_TICK: int = 60             # articles AI-processed per scheduled run (no Celery worker)
     TREND_ENGINE_EVERY_MINUTES: int = 55    # a tick also runs the trend engine when it's this stale
 
+    # Google Trends search interest (app/services/search_interest_service.py). Google has no official API and
+    # blocks clients that ask too often, so each run checks only a few trends and stops at the first refusal.
+    SEARCH_INTEREST_ENABLED: bool = True
+    SEARCH_TRENDS_PER_RUN: int = 6          # trends checked per scheduled run (top-scored stale trends first)
+    SEARCH_REFRESH_HOURS: int = 72          # a trend's search data is re-fetched after this long
+    SEARCH_MAX_AGE_DAYS: int = 7            # older search data is ignored by the score
+    SEARCH_MIN_TRENDS: int = 5              # the score uses search interest only once this many trends have it
+    SEARCH_GEO: str = ""                    # "" = worldwide; a country code (US, GB...) for one market
+    SEARCH_DELAY_SECONDS: float = 4.0       # pause between trends, to stay under Google's limits
+
     # Proxies in front of the API that append to X-Forwarded-For (Render: 1). 0 = use the direct
     # connection address and ignore the header, so a client can't fake its IP to dodge rate limits.
     TRUSTED_PROXY_HOPS: int = 0

@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 
 from app.core.database import SessionLocal, get_db
 from app.models import Trend
-from app.schemas.trend import TrendDetail, TrendList, TrendSummary
+from app.schemas.trend import SearchInterest, TrendDetail, TrendList, TrendSummary
+from app.services.search_interest_service import search_detail
 from app.services.trend_query_service import summaries, trend_detail_parts
 
 router = APIRouter()
@@ -95,4 +96,9 @@ def get_trend(slug: str, background_tasks: BackgroundTasks, db: Session = Depend
         _explaining.add(trend.id)
         background_tasks.add_task(_explain_in_background, trend.id)
     detail = TrendDetail.model_validate(trend).model_copy(update=trend_detail_parts(db, trend))
-    return detail.model_copy(update={"explanation_pending": pending})
+    return detail.model_copy(update={"explanation_pending": pending, "search_interest": _search(db, trend.id)})
+
+
+def _search(db: Session, trend_id: str) -> SearchInterest | None:
+    data = search_detail(db, trend_id)
+    return SearchInterest.model_validate(data) if data else None

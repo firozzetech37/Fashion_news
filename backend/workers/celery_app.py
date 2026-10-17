@@ -49,5 +49,6 @@ celery_app.conf.update(
         "process-ai-queue": _every(settings.AI_INTERVAL_MINUTES, "ai.queue_pending"),
         "recalculate-trends": _every(settings.TREND_INTERVAL_MINUTES, "trends.recalculate"),
         "fetch-tracked-topics": _every(settings.TOPIC_INTERVAL_MINUTES, "collectors.fetch_tracked_topics"),
+        "search-interest": _every(30, "trends.search_interest"),
     },
 )

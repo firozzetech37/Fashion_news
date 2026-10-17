@@ -58,6 +58,19 @@ export interface TrendDetail extends TrendSummary {
   sources: NamedCount[]
   related: { name: string; slug: string; status: TrendStatus | null; trend_score: number; shared_articles: number }[]
   articles: Article[]
+  search_interest: SearchInterest | null
+}
+
+/** Google Trends interest for the trend's name: 0-100, where 100 is its busiest day in the last 90 days. */
+export interface SearchInterest {
+  keyword: string
+  geo: string
+  fetched_at: string
+  has_data: boolean
+  recent_avg: number | null
+  previous_avg: number | null
+  growth_pct: number | null
+  series: { date: string; value: number }[]
 }
 
 export interface CelebritySignal {

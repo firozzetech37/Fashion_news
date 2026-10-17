@@ -8,10 +8,10 @@ import { cn } from "cn"
 import { StatusBadge } from "@/components/trends/status-badge"
 import { SectionHeader } from "@/components/ui/section-header"
 import { ForecastPanel } from "@/components/trends/forecast-panel"
-import { MentionsChart, ScoreHistoryChart } from "@/components/trends/trend-charts"
+import { MentionsChart, ScoreHistoryChart, SearchInterestChart } from "@/components/trends/trend-charts"
 import {
   COMPONENT_LABELS, COMPONENT_WEIGHTS, formatGrowth, getJSON, STATUS_STYLES,
-  type NamedCount, type TrendDetail, type TrendStatus,
+  type NamedCount, type SearchInterest, type TrendDetail, type TrendStatus,
 } from "@/lib/trends"
 
 export const metadata: Metadata = { title: "Trend" }
@@ -105,6 +105,7 @@ async function TrendContent({ slug }: { slug: string }) {
                 <ScoreHistoryChart data={trend.score_history} />
               </>
             )}
+            <GoogleSearches search={trend.search_interest} />
           </section>
 
           {/* Forecast: statistical projection always, AI outlook when generated */}
@@ -218,6 +219,42 @@ function Lifecycle({ current }: { current: TrendStatus }) {
         </li>
       ))}
     </ol>
+  )
+}
+
+function GoogleSearches({ search }: { search: SearchInterest | null }) {
+  if (!search) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Google search interest hasn&apos;t been checked for this trend yet. The busiest trends are checked first.
+      </p>
+    )
+  }
+  const growth = search.growth_pct
+  return (
+    <>
+      <SectionTitle
+        title="Google searches"
+        subtitle={`Search interest for "${search.keyword}"${search.geo ? ` in ${search.geo}` : " worldwide"}, last 90 days. 100 is its busiest day.`}
+      />
+      {search.has_data && search.series.length > 1 ? (
+        <>
+          <SearchInterestChart data={search.series} />
+          <p className="text-sm">
+            {growth === null
+              ? "Searches have only just started."
+              : Math.abs(growth) < 1
+                ? "Searches have been flat over the last 4 weeks, compared with the 4 weeks before."
+                : <>Searches are <strong className="tabular-nums">{growth >= 0 ? "up" : "down"} {Math.abs(Math.round(growth))}%</strong> over the last 4 weeks, compared with the 4 weeks before.</>}
+            <span className="text-muted-foreground"> Checked <TimeAgo iso={search.fetched_at} />.</span>
+          </p>
+        </>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          Too few people search Google for this name for it to be measured. Checked <TimeAgo iso={search.fetched_at} />.
+        </p>
+      )}
+    </>
   )
 }
 

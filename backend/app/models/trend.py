@@ -81,6 +81,28 @@ class TrendSnapshot(Base):
     status = Column(String)
 
 
+class TrendSearchInterest(Base):
+    """Google Trends search interest for a trend in one market (geo "" = worldwide).
+
+    Values are Google's 0-100 scale, where 100 is the keyword's own peak in the window, so they show the shape
+    of interest over time, not absolute search volume. See app/services/search_interest_service.py.
+    """
+    __tablename__ = "trend_search_interest"
+    __table_args__ = (UniqueConstraint("trend_id", "geo", name="uq_trend_search_interest_trend_geo"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    trend_id = Column(String, ForeignKey("trends.id", ondelete="CASCADE"), nullable=False, index=True)
+    geo = Column(String, nullable=False, default="")       # "" worldwide, or a country code like US, GB
+    keyword = Column(String, nullable=False)               # what was searched (the trend name at fetch time)
+    fetched_at = Column(DateTime(timezone=True), nullable=False, index=True)
+    series = Column(JSONB)                                 # [["2026-10-01", 54], ...] daily, complete days only
+    has_data = Column(Boolean, nullable=False, default=False)  # False: too few searches for Google to report
+    recent_avg = Column(Float)                             # mean of the last 28 complete days
+    previous_avg = Column(Float)                           # mean of the 28 days before that
+    growth_pct = Column(Float)                             # recent vs previous; null when previous is 0
+    error = Column(String)                                 # last fetch error, kept for the admin view
+
+
 class ForecastRecord(Base):
     """A forecast saved when it was made, then checked against what really happened 7 days later.
 

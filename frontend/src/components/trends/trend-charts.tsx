@@ -2,7 +2,7 @@
 
 import { useIsClient } from "@/components/analytics/use-is-client"
 import { STATUS_STYLES, type TrendStatus } from "@/lib/trends"
-import { Bar, BarChart, CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts"
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts"
 
 const shortDate = (iso: string) =>
   new Date(`${iso}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
@@ -46,6 +46,26 @@ export function ScoreHistoryChart({ data }: { data: { date: string; trend_score:
           <Line type="monotone" dataKey="trend_score" stroke="var(--foreground)" strokeWidth={2} dot={false}
             activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--background)" }} isAnimationActive={false} />
         </LineChart>}
+    </div>
+  )
+}
+
+export function SearchInterestChart({ data }: { data: { date: string; value: number }[] }) {
+  const isClient = useIsClient()
+  return (
+    <div className="h-48 w-full">
+        {isClient && <AreaChart responsive style={{ width: "100%", height: "100%" }} data={data} margin={{ top: 8, right: 8, bottom: 0, left: -24 }}>
+          <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border" />
+          <XAxis dataKey="date" tickFormatter={shortDate} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} minTickGap={32} />
+          <YAxis domain={[0, 100]} ticks={[0, 50, 100]} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+          <Tooltip
+            labelFormatter={(d) => shortDate(String(d))}
+            formatter={(v) => [v, "Search interest"]}
+            contentStyle={{ borderRadius: 8, fontSize: 12 }}
+          />
+          <Area type="monotone" dataKey="value" stroke="var(--foreground)" strokeWidth={1.5} fill="var(--foreground)"
+            fillOpacity={0.08} dot={false} activeDot={{ r: 3, strokeWidth: 2, stroke: "var(--background)" }} isAnimationActive={false} />
+        </AreaChart>}
     </div>
   )
 }
