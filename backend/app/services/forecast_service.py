@@ -89,7 +89,7 @@ def update_forecasts(db: Session) -> dict:
     ):
         history[trend_id].append(((day - today).days, score))
 
-    rows, counts = [], defaultdict(int)
+    rows, made, counts = [], [], defaultdict(int)
     for trend_id, score, status, stats in db.query(Trend.id, Trend.trend_score, Trend.status, Trend.stats):
         if not score:
             rows.append({"id": trend_id, "forecast": None})
@@ -97,8 +97,18 @@ def update_forecasts(db: Session) -> dict:
         f = forecast_trend(score, status, (stats or {}).get("mentions_30d", 0), history.get(trend_id, []))
         f["computed_at"] = datetime.now(timezone.utc).isoformat()
         rows.append({"id": trend_id, "forecast": f})
+        made.append({"trend_id": trend_id, "score": score, "status": status, "forecast": f})
         counts[f["label"]] += 1
     if rows:
         db.execute(update(Trend), rows)
     db.commit()
-    return dict(counts)
+
+    # Save today's forecasts and check the ones made a week ago (app/services/forecast_accuracy_service.py)
+    from app.services.forecast_accuracy_service import track
+    try:
+        accuracy = track(db, today, made)
+        db.commit()
+    except Exception as exc:  # accuracy tracking must never break the forecasts themselves
+        db.rollback()
+        accuracy = {"error": f"{type(exc).__name__}: {exc}"[:300]}
+    return {**counts, "accuracy": accuracy}

@@ -247,6 +247,41 @@ export interface ForecastData {
   too_early: number
 }
 
+export interface HitRate {
+  checked: number
+  hits: number
+  hit_rate: number | null
+}
+
+export interface AccuracySummary extends HitRate {
+  projection_mae: number | null
+  naive_mae: number | null
+  by_label: Partial<Record<Exclude<ForecastLabel, "too_early">, HitRate>>
+  by_confidence: Record<"low" | "medium" | "high", HitRate>
+  weekly: { week: string; checked: number; hit_rate: number | null }[]
+  pending: number
+  next_check_on: string | null
+}
+
+export interface ForecastAccuracy {
+  horizon_days: number
+  rules: Record<Exclude<ForecastLabel, "too_early">, string>
+  live: AccuracySummary
+  backtest: AccuracySummary
+  recent_source: "live" | "backtest"
+  recent: {
+    trend: string
+    slug: string
+    label: Exclude<ForecastLabel, "too_early">
+    made_on: string
+    start_score: number
+    projected_score: number
+    actual_score: number
+    confidence: number
+    hit: boolean
+  }[]
+}
+
 export interface TrendAlert {
   id: number
   kind: "stage_up" | "breakout" | "new_emerging"

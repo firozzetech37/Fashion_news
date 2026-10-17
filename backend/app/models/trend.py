@@ -1,5 +1,5 @@
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import Column, Date, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, Column, Date, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import deferred
 from sqlalchemy.sql import func
@@ -79,6 +79,39 @@ class TrendSnapshot(Base):
     momentum_score = Column(Float, nullable=False)
     mentions_7d = Column(Integer, nullable=False)
     status = Column(String)
+
+
+class ForecastRecord(Base):
+    """A forecast saved when it was made, then checked against what really happened 7 days later.
+
+    source "live" rows are recorded by the hourly engine (the first forecast of each day is kept, so it is a
+    real prediction made in advance). source "backtest" rows replay the forecast on stored score history,
+    which gives a hit rate straight away but is weaker evidence. See app/services/forecast_accuracy_service.py.
+    """
+    __tablename__ = "forecast_records"
+    __table_args__ = (UniqueConstraint("trend_id", "made_on", "source", name="uq_forecast_records_trend_day_source"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    trend_id = Column(String, ForeignKey("trends.id", ondelete="CASCADE"), nullable=False, index=True)
+    source = Column(String, nullable=False, default="live")    # live | backtest
+    made_on = Column(Date, nullable=False, index=True)
+    due_on = Column(Date, nullable=False, index=True)          # made_on + horizon: when it is checked
+
+    label = Column(String, nullable=False)                     # breaking_out | likely_to_peak | sustained | steady | declining
+    start_score = Column(Float, nullable=False)                # trend_score when the forecast was made
+    start_status = Column(String)
+    projected_score = Column(Float, nullable=False)            # projected_score_7d
+    confidence = Column(Float, nullable=False, default=0)
+
+    # Filled in once due_on has passed
+    resolved_on = Column(Date)
+    actual_score = Column(Float)                               # 0 when the trend dropped out of scoring (faded)
+    actual_status = Column(String)
+    outcome = Column(String, index=True)                       # hit | miss | no_data (null while pending)
+    hit = Column(Boolean)
+    projection_error = Column(Float)                           # |projected - actual|
+    naive_error = Column(Float)                                # |start - actual|: the "nothing changes" baseline
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
 class Alert(Base):

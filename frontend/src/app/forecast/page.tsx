@@ -1,8 +1,9 @@
 import { Suspense } from "react"
 import type { Metadata } from "next"
+import { ForecastAccuracyPanel } from "@/components/trends/forecast-accuracy"
 import { TrendCard } from "@/components/trends/trend-card"
 import { ApiUnavailable, TrendGridSkeleton } from "@/components/trends/trend-grid"
-import { FORECAST_LABELS, getJSON, type ForecastData } from "@/lib/trends"
+import { FORECAST_LABELS, getJSON, type ForecastAccuracy, type ForecastData } from "@/lib/trends"
 
 export const metadata: Metadata = { title: "Forecast" }
 
@@ -27,10 +28,14 @@ export default function ForecastPage() {
 }
 
 async function ForecastGroups() {
-  const data = await getJSON<ForecastData>("/api/forecast/")
+  const [data, accuracy] = await Promise.all([
+    getJSON<ForecastData>("/api/forecast/"),
+    getJSON<ForecastAccuracy>("/api/forecast/accuracy"),
+  ])
   if (!data) return <ApiUnavailable />
   return (
     <div className="space-y-14">
+      {accuracy && <ForecastAccuracyPanel data={accuracy} />}
       {ORDER.filter((label) => data.groups[label]?.length).map((label) => (
         <section key={label} className="space-y-4">
           <div>
