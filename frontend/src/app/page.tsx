@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { cn } from "cn";
 import { EditorialHero } from "@/components/home/editorial-hero";
+import { HomeLoader } from "@/components/home/home-loader";
 import { SectionHeader } from "@/components/ui/section-header";
 import { StatusBadge } from "@/components/trends/status-badge";
 import { TrendCard } from "@/components/trends/trend-card";
@@ -13,6 +14,7 @@ import { formatGrowth, isDown, getJSON, type HomeData } from "@/lib/trends";
 export default function Home() {
   return (
     <div className="flex flex-col gap-16 pb-16">
+      <HomeLoader />
       <EditorialHero />
 
       <Suspense fallback={<HomeSkeleton />}>

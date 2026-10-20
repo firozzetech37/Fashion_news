@@ -119,6 +119,11 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* Animatable custom properties for the home loader's count (registered at the top level: inside a layer they are dropped) */
+@property --loader-n { syntax: "<integer>"; inherits: true; initial-value: 0; }
+@property --loader-p { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --loader-s { syntax: "<integer>"; inherits: true; initial-value: 0; }
+
 /* Brand tokens: layered shadows and an expressive easing, used by the utilities below */
 @theme {
   --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.04), 0 1px 1px rgb(0 0 0 / 0.02);
@@ -210,6 +215,89 @@
   @keyframes hero-progress {
     from { transform: scaleX(0); }
     to { transform: scaleX(1); }
+  }
+  /* Home loader count, driven by CSS so it starts at first paint (before hydration). The stops and the dwell at each
+     signal mirror SIGNALS / ACTIVE_MS / DWELL_MS in home-loader.tsx; total 4500ms. */
+  .loader-run { animation: loader-count 4500ms both, loader-signals 4500ms linear both; }
+  @keyframes loader-count {
+    0.000% { --loader-n: 0; --loader-p: 0; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+    7.556% { --loader-n: 10; --loader-p: 10; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+    12.444% { --loader-n: 10; --loader-p: 10; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+    26.044% { --loader-n: 28; --loader-p: 28; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+    30.933% { --loader-n: 28; --loader-p: 28; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+    44.533% { --loader-n: 46; --loader-p: 46; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+    49.422% { --loader-n: 46; --loader-p: 46; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+    63.022% { --loader-n: 64; --loader-p: 64; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+    67.911% { --loader-n: 64; --loader-p: 64; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+    81.511% { --loader-n: 82; --loader-p: 82; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+    86.400% { --loader-n: 82; --loader-p: 82; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+    100.000% { --loader-n: 100; --loader-p: 100; animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+  }
+  @keyframes loader-signals {
+    0% { --loader-s: 0; }
+    7.111% { --loader-s: 0; }
+    7.556% { --loader-s: 1; }
+    25.600% { --loader-s: 1; }
+    26.044% { --loader-s: 2; }
+    44.089% { --loader-s: 2; }
+    44.533% { --loader-s: 3; }
+    62.578% { --loader-s: 3; }
+    63.022% { --loader-s: 4; }
+    81.067% { --loader-s: 4; }
+    81.511% { --loader-s: 5; }
+    100% { --loader-s: 5; }
+  }
+  .loader-count { counter-reset: loader var(--loader-n); }
+  .loader-count::after { content: counter(loader, decimal-leading-zero); }
+  .loader-signals { counter-reset: found var(--loader-s); }
+  .loader-signals::after { content: "[ " counter(found, decimal-leading-zero) " / 05 signals ]"; }
+  .loader-fill { clip-path: inset(calc((100 - var(--loader-p)) * 1%) 0 0 0); }
+  .loader-line { transform-origin: left; transform: scaleX(calc(var(--loader-p) / 100)); }
+  /* Signals, photos and step labels switch on at their delay */
+  .loader-signal { opacity: 0; animation: loader-signal 700ms var(--ease-out-expo) both; }
+  @keyframes loader-signal {
+    from { opacity: 0; scale: 0.5; }
+    to { opacity: 1; scale: 1; }
+  }
+  .loader-photo { opacity: 0.3; filter: grayscale(1); scale: 0.9; animation: loader-photo 700ms var(--ease-out-expo) both; }
+  @keyframes loader-photo {
+    from { opacity: 0.3; filter: grayscale(1); scale: 0.9; border-color: rgb(255 255 255 / 0.2); }
+    to { opacity: 1; filter: grayscale(0); scale: 1; border-color: rgb(255 255 255 / 0.7); }
+  }
+  .loader-step { opacity: 0; animation: loader-step linear; }
+  @keyframes loader-step {
+    from, to { opacity: 1; }
+  }
+  /* Home loader: a slow radar sweep and ping while the count runs; the big type and the radar drift against the
+     mouse; at the end the screen tears along the seam, left half up and right half down, like the hero pages */
+  .radar-sweep { animation: radar-sweep 2.4s linear infinite; }
+  @keyframes radar-sweep {
+    to { transform: rotate(360deg); }
+  }
+  .radar-ping { animation: radar-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite; }
+  @keyframes radar-ping {
+    from { transform: scale(0.2); opacity: 0.8; }
+    to { transform: scale(1.6); opacity: 0; }
+  }
+  .loader-parallax {
+    transform: translate(calc(var(--px, 0) * 24px), calc(-55% + var(--py, 0) * 16px));
+    transition: transform 600ms var(--ease-out-expo);
+  }
+  .loader-parallax-back {
+    transform: translate(calc(-50% + var(--px, 0) * -36px), calc(-50% + var(--py, 0) * -24px));
+    transition: transform 900ms var(--ease-out-expo);
+  }
+  .loader-tear-left { animation: loader-tear-up 1100ms cubic-bezier(0.65, 0, 0.35, 1) both; }
+  .loader-tear-right { animation: loader-tear-down 1100ms cubic-bezier(0.65, 0, 0.35, 1) both; }
+  @keyframes loader-tear-up {
+    to { transform: translateY(-102%); }
+  }
+  @keyframes loader-tear-down {
+    to { transform: translateY(102%); }
+  }
+  .loader-fade { animation: loader-fade 250ms ease-out both; }
+  @keyframes loader-fade {
+    to { opacity: 0; }
   }
   .hero-parallax {
     transform: translate(calc(var(--px, 0) * -18px), calc(var(--py, 0) * -12px)) scale(1.06);
