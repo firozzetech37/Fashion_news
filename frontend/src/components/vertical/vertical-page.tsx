@@ -12,7 +12,7 @@ import { ApiUnavailable, TrendGridSkeleton } from "@/components/trends/trend-gri
 import { SectionHeader } from "@/components/ui/section-header"
 import { formatGrowth, getJSON, type Vertical, type VerticalData } from "@/lib/trends"
 
-const THEMES: Record<Vertical, { eyebrow: string; title: string; tagline: string; hero: string; muted: string; rule: string; peopleTitle: string }> = {
+export const THEMES: Record<Vertical, { eyebrow: string; title: string; tagline: string; hero: string; muted: string; rule: string; peopleTitle: string }> = {
   fashion: {
     eyebrow: "Fashion intelligence", title: "Fashion",
     tagline: "Runway to street: the colors, silhouettes and labels gaining ground across the fashion press.",

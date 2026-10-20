@@ -11,15 +11,22 @@ type Props = {
   size?: "md" | "lg"
   as?: "h2" | "h3"
   className?: string
+  /** Editorial variant: "01." before the title in the display face, and the eyebrow as a bracketed label */
+  index?: string
 }
 
 /** The one section heading used across the site: eyebrow, serif title, optional subtitle and "View all" link. */
-export function SectionHeader({ title, eyebrow, subtitle, href, linkLabel = "View all", size = "lg", as: Tag = "h2", className }: Props) {
+export function SectionHeader({ title, eyebrow, subtitle, href, linkLabel = "View all", size = "lg", as: Tag = "h2", className, index }: Props) {
   return (
     <div className={cn("flex items-end justify-between gap-4", className)}>
       <div className="min-w-0 space-y-1.5">
-        {eyebrow && <p className="eyebrow text-muted-foreground">{eyebrow}</p>}
-        <Tag className={cn("font-serif font-semibold tracking-tight", size === "lg" ? "text-3xl" : "text-2xl")}>{title}</Tag>
+        {eyebrow && (index
+          ? <p className="bracket-label text-muted-foreground">[ {eyebrow} ]</p>
+          : <p className="eyebrow text-muted-foreground">{eyebrow}</p>)}
+        <Tag className={cn("font-serif font-semibold tracking-tight", size === "lg" ? "text-3xl" : "text-2xl")}>
+          {index && <span className="mr-3 font-display text-[0.85em] font-normal tracking-wide text-foreground/40">{index}.</span>}
+          {title}
+        </Tag>
         {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
       </div>
       {href && (

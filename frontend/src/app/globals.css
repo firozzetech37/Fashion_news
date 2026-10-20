@@ -11,6 +11,7 @@
   --font-mono: var(--font-geist-mono);
   /* Headings (incl. shadcn CardTitle) use the editorial serif, so the brand voice is consistent everywhere */
   --font-heading: var(--font-serif);
+  --font-display: var(--font-display);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -175,12 +176,45 @@
   @apply font-sans text-[11px] font-semibold uppercase tracking-[0.18em];
 }
 
+/* Bracketed index labels in the editorial home layout, e.g. [ 01 ] [ 78 trends ] */
+@utility bracket-label {
+  @apply text-[11px] uppercase tracking-[0.14em];
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
 /* Cards that respond to hover with a gentle lift instead of a flat colour change */
 @utility card-lift {
   @apply transition-[transform,box-shadow] duration-300 ease-out-expo hover:-translate-y-0.5 hover:shadow-lift;
 }
 
 @layer components {
+  /* Home hero: pages slide as one strip, the old one out through the top as the new rises from below
+     (reversed for "previous"). A linear progress line shows the time to the next page, and the photo
+     drifts gently against the mouse. */
+  .hero-enter { animation: hero-enter 1500ms cubic-bezier(0.65, 0, 0.35, 1) both; }
+  .hero-leave { animation: hero-leave 1500ms cubic-bezier(0.65, 0, 0.35, 1) both; }
+  .hero-enter-back { animation: hero-leave 1500ms cubic-bezier(0.65, 0, 0.35, 1) both reverse; }
+  .hero-leave-back { animation: hero-enter 1500ms cubic-bezier(0.65, 0, 0.35, 1) both reverse; }
+  @keyframes hero-enter {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  @keyframes hero-leave {
+    from { transform: translateY(0); }
+    to { transform: translateY(-100%); }
+  }
+  .hero-progress {
+    transform-origin: left;
+    animation: hero-progress linear both;
+  }
+  @keyframes hero-progress {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+  .hero-parallax {
+    transform: translate(calc(var(--px, 0) * -18px), calc(var(--py, 0) * -12px)) scale(1.06);
+    transition: transform 700ms var(--ease-out-expo);
+  }
   /* Underline that draws itself in from the left; wrap text in a span inside a hovered link or .group */
   .link-reveal {
     background-image: linear-gradient(currentColor, currentColor);

@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { ArrowDownRight, ArrowRight, ArrowUpRight } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
+import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { cn } from "cn";
+import { EditorialHero } from "@/components/home/editorial-hero";
 import { SectionHeader } from "@/components/ui/section-header";
 import { StatusBadge } from "@/components/trends/status-badge";
 import { TrendCard } from "@/components/trends/trend-card";
@@ -12,32 +12,8 @@ import { formatGrowth, isDown, getJSON, type HomeData } from "@/lib/trends";
 
 export default function Home() {
   return (
-    <div className="relative isolate flex flex-col gap-16 pb-16">
-      {/* Soft neutral glow behind the hero (uses the theme's muted grey, nothing new) */}
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[480px] bg-[radial-gradient(60%_70%_at_50%_0%,var(--color-muted)_0%,transparent_70%)]" />
-
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 md:px-8 pt-20 pb-4 flex flex-col items-center text-center space-y-8">
-        <p className="eyebrow inline-flex items-center gap-2.5 text-muted-foreground">
-          <span aria-hidden className="size-1.5 rounded-full bg-emerald-500" />
-          AI fashion intelligence<span className="hidden sm:inline"> · updated every 30 minutes</span>
-        </p>
-        <h1 className="font-serif text-5xl md:text-7xl font-bold tracking-tight max-w-4xl leading-[1.05]">
-          Discover What&apos;s Trending <br className="hidden md:block"/> Before It Becomes <em className="font-medium italic">Mainstream.</em>
-        </h1>
-        <p className="text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed">
-          AI-powered fashion intelligence from thousands of signals across fashion, celebrity culture, brands and global media.
-        </p>
-        <div className="flex flex-wrap justify-center gap-3 pt-2">
-          <Link href="/trending" className={cn(buttonVariants({ size: "lg" }), "group h-11 rounded-full px-7 text-[15px] shadow-lift")}>
-            Explore Trends
-            <ArrowRight className="size-4 transition-transform duration-300 ease-out-expo group-hover:translate-x-0.5" aria-hidden />
-          </Link>
-          <Link href="/radar" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "h-11 rounded-full px-7 text-[15px]")}>
-            View Trend Radar
-          </Link>
-        </div>
-      </section>
+    <div className="flex flex-col gap-16 pb-16">
+      <EditorialHero />
 
       <Suspense fallback={<HomeSkeleton />}>
         <HomeSections />
@@ -58,9 +34,9 @@ async function HomeSections() {
       <section className="bg-muted/30 py-8 border-y border-foreground/[0.08]">
         <div className="container mx-auto px-4 md:px-8">
           <div className="mb-6 flex items-baseline justify-between gap-4">
-            <h2 className="eyebrow text-muted-foreground">What&apos;s Trending</h2>
-            <p className="text-xs text-muted-foreground tabular-nums">
-              {data.stats.trends} trends from {data.stats.articles.toLocaleString()} stories across {data.stats.sources} sources
+            <h2 className="bracket-label whitespace-nowrap text-muted-foreground">[ 02 ] [ What&apos;s trending ]</h2>
+            <p className="bracket-label hidden text-muted-foreground tabular-nums md:block">
+              [ {data.stats.trends} trends ] [ {data.stats.articles.toLocaleString()} stories ] [ {data.stats.sources} sources ]
             </p>
           </div>
           <div className="grid grid-cols-2 gap-6 md:grid-cols-4 md:gap-0 md:divide-x md:divide-foreground/10">
@@ -83,7 +59,7 @@ async function HomeSections() {
 
       {/* Trend Radar */}
       <section id="radar" className="container mx-auto px-4 md:px-8 space-y-8 scroll-mt-24">
-        <SectionHeader eyebrow="Top signals this week" title="Trend Radar" href="/trending" />
+        <SectionHeader index="03" eyebrow="Top signals this week" title="Trend Radar" href="/trending" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {data.radar.map((trend) => <TrendCard key={trend.id} trend={trend} />)}
         </div>
@@ -92,7 +68,7 @@ async function HomeSections() {
       {/* Celebrity Style */}
       {data.celebrities.length > 0 && (
         <section className="container mx-auto px-4 md:px-8 space-y-8">
-          <SectionHeader eyebrow="Who's influencing" title="Celebrity Style" href="/celebrities" />
+          <SectionHeader index="04" eyebrow="Who's influencing" title="Celebrity Style" href="/celebrities" />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {data.celebrities.slice(0, 8).map((celeb) => (
               <a key={celeb.name} href={celeb.url ?? undefined} target="_blank" rel="noreferrer" className="group space-y-3">
@@ -122,7 +98,7 @@ async function HomeSections() {
 
       {/* Emerging Trends */}
       <section className="container mx-auto px-4 md:px-8 space-y-8">
-        <SectionHeader eyebrow="Early signals" title="Emerging Trends" href="/emerging" />
+        <SectionHeader index="05" eyebrow="Early signals" title="Emerging Trends" href="/emerging" />
         <div className="divide-y divide-foreground/[0.08] rounded-xl bg-card shadow-soft ring-1 ring-foreground/10">
           {data.emerging.map((trend, i) => (
             <Link key={trend.id} href={`/trends/${trend.slug}`}
@@ -147,7 +123,7 @@ async function HomeSections() {
       {/* Latest Fashion Intelligence */}
       {data.latest.length > 0 && (
         <section className="container mx-auto px-4 md:px-8 space-y-8">
-          <SectionHeader eyebrow="Fresh from the press" title="Latest Fashion Intelligence" />
+          <SectionHeader index="06" eyebrow="Fresh from the press" title="Latest Fashion Intelligence" />
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {data.latest.map((a) => <ArticleCard key={a.id} article={a} />)}
           </div>
