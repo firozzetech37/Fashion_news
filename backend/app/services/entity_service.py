@@ -1,5 +1,6 @@
 """Builds the celebrity and brand tables from the entities the AI extracted from articles."""
 import math
+import unicodedata
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
 
@@ -15,21 +16,27 @@ from app.services.verticals import article_vertical
 
 KINDS = {"celebrity": "celebrities", "brand": "brands"}
 PROFILE_BATCH = 60
+_APOSTROPHES = str.maketrans({"’": "'", "‘": "'", "ʼ": "'", "`": "'", "´": "'"})
+
+
+def entity_key(name: str) -> str:
+    """Match key for a name, so "Victoria’s Secret" and "victoria's  secret" are the same brand."""
+    return " ".join(unicodedata.normalize("NFKC", name).translate(_APOSTROPHES).casefold().split())
 
 
 def ensure_profiles(db: Session, names: list[str]) -> dict[str, EntityProfile]:
     """Classify celebrities that don't have a cached profile yet. Stops quietly on rate limits."""
-    profiles = {p.key: p for p in db.query(EntityProfile).filter(EntityProfile.kind == "celebrity")}
-    missing = [n for n in names if n.lower() not in profiles]
+    profiles = {entity_key(p.key): p for p in db.query(EntityProfile).filter(EntityProfile.kind == "celebrity")}
+    missing = [n for n in names if entity_key(n) not in profiles]
     for i in range(0, len(missing), PROFILE_BATCH):
         batch = missing[i:i + PROFILE_BATCH]
         try:
             result = profile_celebrities(batch)
         except (AIError, AIRateLimited):
             break  # unprofiled celebrities fall back to the article-based vertical; retried next run
-        wanted = {n.lower() for n in batch}
+        wanted = {entity_key(n) for n in batch}
         for p in result.profiles:
-            key = p.name.strip().lower()
+            key = entity_key(p.name)
             if key in wanted and key not in profiles:
                 profile = EntityProfile(
                     kind="celebrity", key=key,
@@ -53,7 +60,7 @@ def sync_entities(db: Session) -> dict:
     """Rebuild the entities table (derived data, so a full rebuild keeps it simple and consistent)."""
     now = datetime.now(timezone.utc)
     since_30d = now - timedelta(days=30)
-    publishers = {name.lower() for (name,) in db.query(Source.name)}
+    publishers = {entity_key(name) for (name,) in db.query(Source.name)}
 
     rows = (
         db.query(
@@ -81,7 +88,7 @@ def sync_entities(db: Session) -> dict:
             kind: list(dict.fromkeys(n.strip() for n in ents.get(key) or [] if n and n.strip()))
             for kind, key in KINDS.items()
         }
-        names_by_kind["brand"] = [n for n in names_by_kind["brand"] if n.lower() not in publishers]
+        names_by_kind["brand"] = [n for n in names_by_kind["brand"] if entity_key(n) not in publishers]
         vertical = article_vertical(r.category, r.source_category)
         signals = r.signals or {}
 
@@ -89,7 +96,7 @@ def sync_entities(db: Session) -> dict:
             other = names_by_kind["brand" if kind == "celebrity" else "celebrity"]
             adoption = signals.get("celebrity_adoption" if kind == "celebrity" else "brand_adoption", 0)
             for position, name in enumerate(names):
-                e = agg[kind].setdefault(name.lower(), {
+                e = agg[kind].setdefault(entity_key(name), {
                     "names": Counter(), "stories": 0, "s30": 0, "f30": 0, "adoption": 0.0, "verticals": Counter(),
                     "image": None, "image_rank": 9, "headline": None, "trends": Counter(), "related": Counter(),
                     "first": when, "last": when,
@@ -110,7 +117,7 @@ def sync_entities(db: Session) -> dict:
                     if r.image_url and rank < e["image_rank"]:
                         e["image"], e["headline"], e["image_rank"] = r.image_url, r.title, rank
                     e["trends"].update(trends_by_article.get(r.id, []))
-                    e["related"].update(n.lower() for n in other)
+                    e["related"].update(entity_key(n) for n in other)
 
     # Stable display names and slugs first (related lists need the other kind's slugs)
     meta = {}

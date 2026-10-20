@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
+import { connection } from 'next/server'
 import { LogIn, Search, User } from 'lucide-react'
 import { cn } from 'cn'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -40,6 +41,8 @@ export function Navbar() {
 }
 
 async function UserMenu() {
+  // Cookies resolve in the prefetched App Shell, but the Supabase auth check reads the clock and the network, so it waits for the request
+  await connection()
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   return user ? (

@@ -1,7 +1,9 @@
 import { Suspense } from "react"
+import Image from "next/image"
 import Link from "next/link"
 import { cn } from "cn"
 import { EntityGrid } from "@/components/entities/entity-card"
+import { HERO_PHOTOS, pickHeroPhoto, type HeroPhoto } from "@/components/vertical/hero-photos"
 import { SectionSearch } from "@/components/vertical/section-search"
 import { ArticleCard } from "@/components/trends/article-card"
 import { StatusBadge } from "@/components/trends/status-badge"
@@ -35,22 +37,43 @@ const THEMES: Record<Vertical, { eyebrow: string; title: string; tagline: string
 
 export function VerticalPage({ vertical }: { vertical: Vertical }) {
   const theme = THEMES[vertical]
+  const photos = HERO_PHOTOS[vertical]
   return (
     <div className="flex flex-col gap-16 pb-16">
       <section className={cn("py-16 md:py-24", theme.hero)}>
-        <div className="container mx-auto max-w-4xl space-y-5 px-4 md:px-8">
-          <p className={cn("eyebrow flex items-center gap-3", theme.muted)}>
-            <span aria-hidden className={cn("h-px w-8", theme.rule)} />
-            {theme.eyebrow}
-          </p>
-          <h1 className="font-serif text-5xl font-bold tracking-tight md:text-7xl">{theme.title}</h1>
-          <p className={cn("max-w-2xl text-lg leading-relaxed md:text-xl", theme.muted)}>{theme.tagline}</p>
+        <div className={cn("container mx-auto px-4 md:px-8",
+          photos ? "grid max-w-6xl items-center gap-10 md:grid-cols-[1.15fr_1fr] md:gap-16" : "max-w-4xl")}>
+          <div className="space-y-5">
+            <p className={cn("eyebrow flex items-center gap-3", theme.muted)}>
+              <span aria-hidden className={cn("h-px w-8", theme.rule)} />
+              {theme.eyebrow}
+            </p>
+            <h1 className="font-serif text-5xl font-bold tracking-tight md:text-7xl">{theme.title}</h1>
+            <p className={cn("max-w-2xl text-lg leading-relaxed md:text-xl", theme.muted)}>{theme.tagline}</p>
+          </div>
+          {photos && (
+            <Suspense fallback={<div className={cn(PHOTO_FRAME, "animate-pulse opacity-50", theme.rule)} />}>
+              <RandomHeroPhoto photos={photos} />
+            </Suspense>
+          )}
         </div>
       </section>
       <SectionSearch vertical={vertical} label={`Search ${theme.title}`} />
       <Suspense fallback={<div className="container mx-auto px-4 md:px-8"><TrendGridSkeleton count={4} /></div>}>
         <VerticalSections vertical={vertical} peopleTitle={theme.peopleTitle} />
       </Suspense>
+    </div>
+  )
+}
+
+const PHOTO_FRAME = "relative aspect-[4/5] overflow-hidden rounded-2xl"
+
+async function RandomHeroPhoto({ photos }: { photos: HeroPhoto[] }) {
+  const photo = await pickHeroPhoto(photos)
+  return (
+    <div className={cn(PHOTO_FRAME, "photo-edge bg-muted shadow-soft")}>
+      <Image src={photo.src} alt={photo.alt} fill placeholder="blur" loading="eager"
+        sizes="(min-width: 1152px) 480px, (min-width: 768px) 45vw, 100vw" className="object-cover object-[50%_30%]" />
     </div>
   )
 }

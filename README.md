@@ -24,6 +24,8 @@ Collect → Clean → Understand → Cluster → Score → Predict → Present
 
 ## 🛠 Running locally
 
+Everyday start commands and fixes for common problems are in [START.md](START.md).
+
 ```bash
 # Backend API (http://localhost:8000, docs at /docs)
 cd backend && python -m venv venv && source venv/bin/activate
