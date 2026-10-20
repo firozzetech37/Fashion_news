@@ -2,9 +2,10 @@
 from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta, timezone
 
-from sqlalchemy import func
+from sqlalchemy import func, literal
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.models import Article, Source, Trend, TrendMention, TrendSnapshot
 from app.schemas.article import ArticleOut
 from app.schemas.trend import TrendSummary
@@ -35,9 +36,56 @@ def daily_counts(db: Session, trend_ids: list[str], days: int) -> dict[str, list
     return {tid: [counts[tid].get(d, 0) for d in day_list] for tid in trend_ids}
 
 
+def _photo_rank():
+    """Best photo first: fashion stories where this trend is the main subject (fewest other trends extracted),
+    then the most confident mention, then the most fashion-focused story, then the newest."""
+    co_trends = func.coalesce(func.jsonb_array_length(Article.ai_trends), literal(0))
+    return [co_trends.asc(), TrendMention.confidence.desc().nulls_last(),
+            Article.fashion_relevance.desc().nulls_last(), Article.published_at.desc().nulls_last()]
+
+
+def _photo_query(db: Session):
+    return (
+        db.query(TrendMention.trend_id, Article.image_url, Article.title, Article.url, Article.published_at, Source.name)
+        .join(Article, Article.id == TrendMention.article_id)
+        .join(Source, Source.id == Article.source_id)
+        .filter(Article.image_url.isnot(None), Article.image_url != "", Article.duplicate_of_id.is_(None),
+                Article.fashion_relevance >= settings.TREND_MIN_RELEVANCE)
+    )
+
+
+def cover_photos(db: Session, trend_ids: list[str]) -> dict[str, str]:
+    """One photo per trend for the trend cards, in a single query."""
+    if not trend_ids:
+        return {}
+    rows = (
+        _photo_query(db).filter(TrendMention.trend_id.in_(trend_ids))
+        .order_by(TrendMention.trend_id, *_photo_rank())
+        .distinct(TrendMention.trend_id).all()
+    )
+    return {r.trend_id: r.image_url for r in rows}
+
+
+def trend_photos(db: Session, trend_id: str, limit: int = 8) -> list[dict]:
+    """Photos from the stories behind a trend, best first, one per image, each linking back to its story."""
+    seen, photos = set(), []
+    for r in _photo_query(db).filter(TrendMention.trend_id == trend_id).order_by(*_photo_rank()).limit(limit * 4):
+        if r.image_url in seen:
+            continue
+        seen.add(r.image_url)
+        photos.append({"image_url": r.image_url, "title": r.title, "url": r.url, "source_name": r.name, "published_at": r.published_at})
+        if len(photos) == limit:
+            break
+    return photos
+
+
 def summaries(db: Session, trends: list[Trend], spark_days: int = 14) -> list[TrendSummary]:
-    sparks = daily_counts(db, [t.id for t in trends], spark_days)
-    return [TrendSummary.model_validate(t).model_copy(update={"sparkline": sparks.get(t.id, [])}) for t in trends]
+    ids = [t.id for t in trends]
+    sparks, covers = daily_counts(db, ids, spark_days), cover_photos(db, ids)
+    return [
+        TrendSummary.model_validate(t).model_copy(update={"sparkline": sparks.get(t.id, []), "image_url": covers.get(t.id)})
+        for t in trends
+    ]
 
 
 def trend_detail_parts(db: Session, trend: Trend) -> dict:
@@ -86,6 +134,7 @@ def trend_detail_parts(db: Session, trend: Trend) -> dict:
                 related.append({"name": t.name, "slug": t.slug, "status": t.status, "trend_score": t.trend_score, "shared_articles": 0})
 
     top = lambda c: [{"name": n, "count": k} for n, k in c.most_common(10)]
+    photos = trend_photos(db, trend.id)
     return {
         "timeline": [{"date": d, "mentions": n} for d, n in zip(day_list, timeline)],
         "sparkline": timeline[-14:],
@@ -98,6 +147,8 @@ def trend_detail_parts(db: Session, trend: Trend) -> dict:
         "sources": top(sources),
         "related": related,
         "articles": articles,
+        "photos": photos,
+        "image_url": photos[0]["image_url"] if photos else None,
     }
 
 

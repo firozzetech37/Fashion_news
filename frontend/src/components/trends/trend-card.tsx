@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { ArrowDownRight, ArrowUpRight } from "lucide-react"
 import { cn } from "cn"
+import { Monogram } from "@/components/brand/wordmark"
 import { formatGrowth, isDown, type TrendSummary } from "@/lib/trends"
 import { StatusBadge } from "./status-badge"
 import { Sparkline } from "./sparkline"
@@ -10,8 +11,20 @@ export function TrendCard({ trend }: { trend: TrendSummary }) {
   return (
     <Link
       href={`/trends/${trend.slug}`}
-      className="group card-lift flex flex-col gap-4 rounded-xl bg-card p-5 shadow-soft ring-1 ring-foreground/10"
+      className="group card-lift flex flex-col gap-4 overflow-hidden rounded-xl bg-card p-5 shadow-soft ring-1 ring-foreground/10"
     >
+      {/* Cover photo from the stories behind the trend; a quiet placeholder keeps card heights even in a grid */}
+      <div className="photo-edge relative -mx-5 -mt-5 aspect-[16/10] overflow-hidden bg-muted">
+        {trend.image_url ? (
+          // eslint-disable-next-line @next/next/no-img-element -- publisher images come from arbitrary hosts
+          <img src={trend.image_url} alt="" loading="lazy"
+            className="h-full w-full object-cover object-[50%_25%] transition-transform duration-700 ease-out-expo group-hover:scale-[1.04]" />
+        ) : (
+          <div className="flex h-full items-center justify-center text-muted-foreground/30">
+            <Monogram className="size-9" />
+          </div>
+        )}
+      </div>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="font-serif text-xl font-semibold leading-tight">

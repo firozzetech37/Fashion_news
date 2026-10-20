@@ -30,6 +30,8 @@ export interface TrendSummary {
   last_detected: string | null
   sparkline: number[]
   forecast: Forecast | null
+  /** Cover photo: the best photo from the stories behind the trend */
+  image_url: string | null
 }
 
 export interface TrendExplanation {
@@ -58,7 +60,17 @@ export interface TrendDetail extends TrendSummary {
   sources: NamedCount[]
   related: { name: string; slug: string; status: TrendStatus | null; trend_score: number; shared_articles: number }[]
   articles: Article[]
+  /** Photos from the stories behind the trend, best first, each linking to its story */
+  photos: TrendPhoto[]
   search_interest: SearchInterest | null
+}
+
+export interface TrendPhoto {
+  image_url: string
+  title: string
+  url: string
+  source_name: string | null
+  published_at: string | null
 }
 
 /** Google Trends interest for the trend's name: 0-100, where 100 is its busiest day in the last 90 days. */
@@ -271,6 +283,8 @@ export interface AccuracySummary extends HitRate {
   naive_mae: number | null
   by_label: Partial<Record<Exclude<ForecastLabel, "too_early">, HitRate>>
   by_confidence: Record<"low" | "medium" | "high", HitRate>
+  /** Present on the track-record endpoint only */
+  by_category?: Record<string, HitRate>
   weekly: { week: string; checked: number; hit_rate: number | null }[]
   pending: number
   next_check_on: string | null
@@ -292,6 +306,22 @@ export interface ForecastAccuracy {
     actual_score: number
     confidence: number
     hit: boolean
+  }[]
+}
+
+/** /api/forecast/track-record: the accuracy report plus the live predictions still waiting for their check */
+export interface TrackRecord extends ForecastAccuracy {
+  on_record: { predictions: number; trends: number; due_next: number; since: string | null; latest: string | null }
+  open: {
+    trend: string
+    slug: string
+    category: string | null
+    label: Exclude<ForecastLabel, "too_early">
+    made_on: string
+    due_on: string
+    start_score: number
+    projected_score: number
+    confidence: number
   }[]
 }
 

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.models import Trend
-from app.services.forecast_accuracy_service import accuracy_report
+from app.services.forecast_accuracy_service import accuracy_report, track_record_report
 from app.services.trend_query_service import summaries
 
 router = APIRouter()
@@ -40,3 +40,9 @@ def forecast(db: Session = Depends(get_db)):
 def accuracy(db: Session = Depends(get_db)):
     """How often past forecasts came true: live (recorded in advance) and backtest (replayed history), kept separate."""
     return accuracy_report(db)
+
+
+@router.get("/track-record")
+def track_record(db: Session = Depends(get_db)):
+    """Public track record: hit rates plus the live predictions still waiting for their check."""
+    return track_record_report(db)

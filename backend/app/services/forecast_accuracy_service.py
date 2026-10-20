@@ -213,6 +213,12 @@ def _summary(db: Session, source: str) -> dict:
         for w, n, h in checked.with_entities(week, func.count(ForecastRecord.id), hits_expr).group_by("week").order_by("week")
     ]
 
+    by_category = {
+        (cat or "other"): {"checked": n, "hits": h or 0, "hit_rate": _rate(h or 0, n)}
+        for cat, n, h in checked.join(Trend, Trend.id == ForecastRecord.trend_id)
+        .with_entities(Trend.category, func.count(ForecastRecord.id), hits_expr).group_by(Trend.category)
+    }
+
     pending = db.query(func.count(ForecastRecord.id)).filter(
         ForecastRecord.source == source, ForecastRecord.outcome.is_(None)).scalar() or 0
     next_due = db.query(func.min(ForecastRecord.due_on)).filter(
@@ -225,10 +231,44 @@ def _summary(db: Session, source: str) -> dict:
         "naive_mae": round(naive, 1) if naive is not None else None,
         "by_label": by_label,
         "by_confidence": {name: by_conf.get(name, {"checked": 0, "hits": 0, "hit_rate": None}) for name, _, _ in CONFIDENCE_BANDS},
+        "by_category": dict(sorted(by_category.items(), key=lambda kv: -kv[1]["checked"])),
         "weekly": weekly,
         "pending": pending,
         "next_check_on": next_due.isoformat() if next_due else None,
     }
+
+
+def track_record_report(db: Session, open_limit: int = 30) -> dict:
+    """The public track record: the accuracy report, plus every live prediction still on record and waiting for
+    its check (soonest first), so anyone can see what was called before the outcome is known."""
+    report = accuracy_report(db, recent=30)
+    live = db.query(ForecastRecord).filter(ForecastRecord.source == "live")
+    total, trends, first, latest = live.with_entities(
+        func.count(ForecastRecord.id), func.count(func.distinct(ForecastRecord.trend_id)),
+        func.min(ForecastRecord.made_on), func.max(ForecastRecord.made_on),
+    ).one()
+    rows = (
+        db.query(ForecastRecord, Trend.name, Trend.slug, Trend.category)
+        .join(Trend, Trend.id == ForecastRecord.trend_id)
+        .filter(ForecastRecord.source == "live", ForecastRecord.outcome.is_(None))
+        .order_by(ForecastRecord.due_on, ForecastRecord.confidence.desc(), ForecastRecord.start_score.desc())
+        .limit(open_limit).all()
+    )
+    next_due = report["live"]["next_check_on"]
+    due_next = live.filter(ForecastRecord.outcome.is_(None), ForecastRecord.due_on == date.fromisoformat(next_due)).count() if next_due else 0
+    report["on_record"] = {
+        "predictions": total or 0, "trends": trends or 0, "due_next": due_next,
+        "since": first.isoformat() if first else None, "latest": latest.isoformat() if latest else None,
+    }
+    report["open"] = [
+        {
+            "trend": name, "slug": slug, "category": category, "label": r.label,
+            "made_on": r.made_on.isoformat(), "due_on": r.due_on.isoformat(),
+            "start_score": round(r.start_score, 1), "projected_score": round(r.projected_score, 1), "confidence": r.confidence,
+        }
+        for r, name, slug, category in rows
+    ]
+    return report
 
 
 def accuracy_report(db: Session, recent: int = 12) -> dict:

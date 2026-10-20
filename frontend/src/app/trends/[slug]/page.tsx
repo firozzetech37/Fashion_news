@@ -11,7 +11,7 @@ import { ForecastPanel } from "@/components/trends/forecast-panel"
 import { MentionsChart, ScoreHistoryChart, SearchInterestChart } from "@/components/trends/trend-charts"
 import {
   COMPONENT_LABELS, COMPONENT_WEIGHTS, formatGrowth, getJSON, STATUS_STYLES,
-  type NamedCount, type SearchInterest, type TrendDetail, type TrendStatus,
+  type NamedCount, type SearchInterest, type TrendDetail, type TrendPhoto, type TrendStatus,
 } from "@/lib/trends"
 
 export const metadata: Metadata = { title: "Trend" }
@@ -36,11 +36,14 @@ async function TrendContent({ slug }: { slug: string }) {
   const stats = trend.stats
   const ai = trend.explanation
   const aliases = trend.aliases.filter((a) => a !== trend.name)
+  const photos = trend.photos ?? [] // older API responses have no photos
 
   return (
     <div className="mt-6 space-y-12">
       {/* Hero */}
-      <header className="grid gap-8 border-b border-foreground/10 pb-10 md:grid-cols-[1fr_auto] md:items-end">
+      <header className={cn("grid gap-8 border-b border-foreground/10 pb-10 md:items-end",
+        photos[0] ? "md:grid-cols-[minmax(0,240px)_1fr_auto]" : "md:grid-cols-[1fr_auto]")}>
+        {photos[0] && <CoverPhoto photo={photos[0]} name={trend.name} />}
         <div className="space-y-3">
           <p className="eyebrow text-muted-foreground">
             {[trend.type, trend.category].filter(Boolean).join(" · ")}
@@ -94,6 +97,8 @@ async function TrendContent({ slug }: { slug: string }) {
                   : "This trend has no active signal, so it has no AI analysis."}
             </p>
           </section>
+
+          {photos.length > 1 && <SeenIn photos={photos} name={trend.name} />}
 
           {/* Momentum */}
           <section className="space-y-4">
@@ -309,5 +314,41 @@ function TrendSkeleton() {
       <div className="h-14 w-2/3 rounded bg-muted" />
       <div className="h-48 rounded-2xl bg-muted" />
     </div>
+  )
+}
+
+/** The best photo from the stories behind the trend, credited and linked to its story */
+function CoverPhoto({ photo, name }: { photo: TrendPhoto; name: string }) {
+  return (
+    <a href={photo.url} target="_blank" rel="noreferrer" className="group block space-y-2">
+      <div className="photo-edge relative aspect-[4/5] overflow-hidden rounded-xl bg-muted">
+        {/* eslint-disable-next-line @next/next/no-img-element -- publisher images come from arbitrary hosts */}
+        <img src={photo.image_url} alt={`${name}: ${photo.title}`} fetchPriority="high"
+          className="h-full w-full object-cover object-[50%_25%] transition-transform duration-700 ease-out-expo group-hover:scale-[1.04]" />
+      </div>
+      {photo.source_name && <p className="text-xs text-muted-foreground">Photo: {photo.source_name}</p>}
+    </a>
+  )
+}
+
+/** "Seen in": photos from the stories that mention the trend, so you can see what it looks like */
+function SeenIn({ photos, name }: { photos: TrendPhoto[]; name: string }) {
+  return (
+    <section className="space-y-4">
+      <SectionTitle title="Seen in" subtitle={`Photos from the stories behind ${name}. Each opens the original article.`} />
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
+        {photos.map((p) => (
+          <a key={p.image_url} href={p.url} target="_blank" rel="noreferrer" className="group space-y-2">
+            <div className="photo-edge relative aspect-[3/4] overflow-hidden rounded-xl bg-muted">
+              {/* eslint-disable-next-line @next/next/no-img-element -- publisher images come from arbitrary hosts */}
+              <img src={p.image_url} alt={p.title} loading="lazy"
+                className="h-full w-full object-cover object-[50%_25%] transition-transform duration-700 ease-out-expo group-hover:scale-[1.04]" />
+            </div>
+            <p className="line-clamp-2 text-sm font-medium leading-snug"><span className="link-reveal">{p.title}</span></p>
+            <p className="text-xs text-muted-foreground">{p.source_name}{p.published_at && <> · <TimeAgo iso={p.published_at} /></>}</p>
+          </a>
+        ))}
+      </div>
+    </section>
   )
 }

@@ -3,12 +3,12 @@ import { CheckCircle2, XCircle } from "lucide-react"
 import { cn } from "cn"
 import { FORECAST_LABELS, type ForecastAccuracy, type HitRate } from "@/lib/trends"
 
-const LABEL_ORDER = ["breaking_out", "likely_to_peak", "sustained", "steady", "declining"] as const
-const CONFIDENCE_NAMES = { low: "Low confidence", medium: "Medium confidence", high: "High confidence" } as const
+export const LABEL_ORDER = ["breaking_out", "likely_to_peak", "sustained", "steady", "declining"] as const
+export const CONFIDENCE_NAMES = { low: "Low confidence", medium: "Medium confidence", high: "High confidence" } as const
 
-const pct = (rate: number | null) => (rate === null ? "–" : `${Math.round(rate * 100)}%`)
+export const pct = (rate: number | null) => (rate === null ? "–" : `${Math.round(rate * 100)}%`)
 
-function formatDate(iso: string) {
+export function formatDate(iso: string) {
   return new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" })
 }
 
@@ -72,6 +72,10 @@ export function ForecastAccuracyPanel({ data }: { data: ForecastAccuracy }) {
         </>
       )}
 
+      <Link href="/track-record" className="inline-block text-sm font-medium underline-offset-4 hover:underline">
+        See the full track record, including every open prediction →
+      </Link>
+
       {hasLive && backtest.checked > 0 && (
         <p className="text-xs text-muted-foreground">
           Backtest for comparison: {pct(backtest.hit_rate)} of {backtest.checked} replayed forecasts came true.
@@ -81,7 +85,7 @@ export function ForecastAccuracyPanel({ data }: { data: ForecastAccuracy }) {
   )
 }
 
-function Stat({ label, value, note }: { label: string; value: string; note: string }) {
+export function Stat({ label, value, note }: { label: string; value: string; note: string }) {
   return (
     <div className="space-y-1 rounded-xl bg-muted/50 p-4">
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
@@ -91,7 +95,7 @@ function Stat({ label, value, note }: { label: string; value: string; note: stri
   )
 }
 
-function RateBar({ title, hint, rate }: { title: string; hint?: string; rate: HitRate }) {
+export function RateBar({ title, hint, rate }: { title: string; hint?: string; rate: HitRate }) {
   const value = Math.round((rate.hit_rate ?? 0) * 100)
   return (
     <div className="space-y-1">
@@ -111,7 +115,7 @@ function RateBar({ title, hint, rate }: { title: string; hint?: string; rate: Hi
   )
 }
 
-function RecentChecks({ data }: { data: ForecastAccuracy }) {
+export function RecentChecks({ data }: { data: ForecastAccuracy }) {
   if (!data.recent.length) return null
   return (
     <div className="space-y-3">

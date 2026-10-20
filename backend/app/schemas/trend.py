@@ -24,6 +24,7 @@ class TrendSummary(BaseModel):
     last_detected: Optional[datetime] = None
     sparkline: list[int] = []  # daily mention counts, oldest first
     forecast: Optional[dict[str, Any]] = None
+    image_url: Optional[str] = None  # cover photo: the best photo from the stories behind the trend
 
 
 class TimelinePoint(BaseModel):
@@ -68,6 +69,14 @@ class SearchInterest(BaseModel):
     series: list[SearchPoint] = []
 
 
+class TrendPhoto(BaseModel):
+    image_url: str
+    title: str
+    url: str
+    source_name: Optional[str] = None
+    published_at: Optional[datetime] = None
+
+
 class TrendDetail(TrendSummary):
     aliases: list[str] = []
     score_breakdown: Optional[dict[str, Optional[float]]] = None
@@ -81,6 +90,7 @@ class TrendDetail(TrendSummary):
     sources: list[NamedCount] = []
     related: list[RelatedTrend] = []
     articles: list[ArticleOut] = []
+    photos: list[TrendPhoto] = []
     search_interest: Optional[SearchInterest] = None
 
 

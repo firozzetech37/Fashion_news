@@ -17,6 +17,7 @@ const COLUMNS = [
       { href: '/emerging', label: 'Emerging' },
       { href: '/radar', label: 'Trend Radar' },
       { href: '/forecast', label: 'Forecast' },
+      { href: '/track-record', label: 'Track Record' },
       { href: '/analytics', label: 'Analytics' },
     ],
   },
