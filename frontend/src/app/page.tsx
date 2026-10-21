@@ -125,7 +125,7 @@ async function HomeSections() {
       {/* Latest Fashion Intelligence */}
       {data.latest.length > 0 && (
         <section className="container mx-auto px-4 md:px-8 space-y-8">
-          <SectionHeader index="06" eyebrow="Fresh from the press" title="Latest Fashion Intelligence" />
+          <SectionHeader index="06" eyebrow="Fresh from the press" title="Latest Fashion Intelligence" href="/news" linkLabel="All stories" />
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {data.latest.map((a) => <ArticleCard key={a.id} article={a} />)}
           </div>

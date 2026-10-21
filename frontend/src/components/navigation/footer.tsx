@@ -14,6 +14,7 @@ const COLUMNS = [
     title: 'Discover',
     links: [
       { href: '/trending', label: 'Trending' },
+      { href: '/news', label: 'News' },
       { href: '/emerging', label: 'Emerging' },
       { href: '/radar', label: 'Trend Radar' },
       { href: '/forecast', label: 'Forecast' },

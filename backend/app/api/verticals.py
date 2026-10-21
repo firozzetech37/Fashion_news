@@ -49,7 +49,7 @@ def vertical_page(vertical: str, db: Session = Depends(get_db)):
             vertical_clause(vertical), Article.status == "processed", Article.duplicate_of_id.is_(None),
             Article.fashion_relevance >= 0.5, Article.image_url.isnot(None),
         )
-        .order_by(Article.published_at.desc().nulls_last()).limit(9).all()
+        .order_by(Article.published_at.desc().nulls_last()).limit(12).all()
     )
     story_count = db.query(func.count(Article.id)).filter(vertical_clause(vertical), Article.status == "processed").scalar()
 

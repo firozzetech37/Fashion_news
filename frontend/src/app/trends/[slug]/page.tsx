@@ -8,10 +8,10 @@ import { cn } from "cn"
 import { StatusBadge } from "@/components/trends/status-badge"
 import { SectionHeader } from "@/components/ui/section-header"
 import { ForecastPanel } from "@/components/trends/forecast-panel"
-import { MentionsChart, ScoreHistoryChart, SearchInterestChart } from "@/components/trends/trend-charts"
+import { TrendChartsPanel } from "@/components/trends/trend-charts-panel"
 import {
   COMPONENT_LABELS, COMPONENT_WEIGHTS, formatGrowth, getJSON, STATUS_STYLES,
-  type NamedCount, type SearchInterest, type TrendDetail, type TrendPhoto, type TrendStatus,
+  type NamedCount, type TrendDetail, type TrendPhoto, type TrendStatus,
 } from "@/lib/trends"
 
 export const metadata: Metadata = { title: "Trend" }
@@ -100,18 +100,26 @@ async function TrendContent({ slug }: { slug: string }) {
 
           {photos.length > 1 && <SeenIn photos={photos} name={trend.name} />}
 
-          {/* Momentum */}
-          <section className="space-y-4">
-            <SectionTitle title="Trend momentum" subtitle="Distinct stories per day, last 30 days" />
-            <MentionsChart data={trend.timeline} />
-            {trend.score_history.length > 1 && (
-              <>
-                <SectionTitle title="Score history" subtitle="Daily trend score; hover to see its lifecycle stage on each day" />
-                <ScoreHistoryChart data={trend.score_history} />
-              </>
-            )}
-            <GoogleSearches search={trend.search_interest} />
-          </section>
+          {/* Coverage: the news behind the trend, first 6 shown and the rest one click away */}
+          {trend.articles.length > 0 && (
+            <section className="space-y-4">
+              <SectionTitle title="In the news" subtitle={`${trend.articles.length} ${trend.articles.length === 1 ? "story" : "stories"} mentioning ${trend.name}, newest first`} />
+              <StoryList articles={trend.articles.slice(0, 6)} />
+              {trend.articles.length > 6 && (
+                <details className="group">
+                  <summary className="cursor-pointer list-none rounded-full px-4 py-2 text-center text-sm font-medium ring-1 ring-foreground/15 transition-colors hover:bg-muted group-open:hidden">
+                    Show all {trend.articles.length} stories
+                  </summary>
+                  <StoryList articles={trend.articles.slice(6)} />
+                </details>
+              )}
+            </section>
+          )}
+
+          <TrendChartsPanel timeline={trend.timeline} scoreHistory={trend.score_history} search={trend.search_interest} />
+          {!trend.search_interest && (
+            <p className="-mt-8 text-xs text-muted-foreground">Google search interest hasn&apos;t been checked for this trend yet; the busiest trends are checked first.</p>
+          )}
 
           {/* Forecast: statistical projection always, AI outlook when generated */}
           <section className="space-y-6">
@@ -126,27 +134,6 @@ async function TrendContent({ slug }: { slug: string }) {
             )}
           </section>
 
-          {/* Coverage */}
-          <section className="space-y-4">
-            <SectionTitle title="Coverage" subtitle="Stories mentioning this trend" />
-            <ul className="divide-y rounded-xl shadow-soft ring-1 ring-foreground/10">
-              {trend.articles.map((a) => (
-                <li key={a.id} className="flex gap-4 p-4">
-                  {a.image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- publisher images come from arbitrary hosts
-                    <img src={a.image_url} alt="" className="size-16 shrink-0 rounded-lg bg-muted object-cover" />
-                  ) : <div className="size-16 shrink-0 rounded-lg bg-muted" />}
-                  <div className="min-w-0 space-y-1">
-                    <a href={a.url} target="_blank" rel="noreferrer" className="font-medium leading-snug hover:underline">
-                      {a.title} <ExternalLink className="inline size-3 text-muted-foreground" />
-                    </a>
-                    {a.ai_summary && <p className="line-clamp-2 text-sm text-muted-foreground">{a.ai_summary}</p>}
-                    <p className="text-xs text-muted-foreground">{a.source_name} · <TimeAgo iso={a.published_at} /></p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </section>
         </div>
 
         {/* Sidebar */}
@@ -224,42 +211,6 @@ function Lifecycle({ current }: { current: TrendStatus }) {
         </li>
       ))}
     </ol>
-  )
-}
-
-function GoogleSearches({ search }: { search: SearchInterest | null }) {
-  if (!search) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        Google search interest hasn&apos;t been checked for this trend yet. The busiest trends are checked first.
-      </p>
-    )
-  }
-  const growth = search.growth_pct
-  return (
-    <>
-      <SectionTitle
-        title="Google searches"
-        subtitle={`Search interest for "${search.keyword}"${search.geo ? ` in ${search.geo}` : " worldwide"}, last 90 days. 100 is its busiest day.`}
-      />
-      {search.has_data && search.series.length > 1 ? (
-        <>
-          <SearchInterestChart data={search.series} />
-          <p className="text-sm">
-            {growth === null
-              ? "Searches have only just started."
-              : Math.abs(growth) < 1
-                ? "Searches have been flat over the last 4 weeks, compared with the 4 weeks before."
-                : <>Searches are <strong className="tabular-nums">{growth >= 0 ? "up" : "down"} {Math.abs(Math.round(growth))}%</strong> over the last 4 weeks, compared with the 4 weeks before.</>}
-            <span className="text-muted-foreground"> Checked <TimeAgo iso={search.fetched_at} />.</span>
-          </p>
-        </>
-      ) : (
-        <p className="text-sm text-muted-foreground">
-          Too few people search Google for this name for it to be measured. Checked <TimeAgo iso={search.fetched_at} />.
-        </p>
-      )}
-    </>
   )
 }
 
@@ -350,5 +301,27 @@ function SeenIn({ photos, name }: { photos: TrendPhoto[]; name: string }) {
         ))}
       </div>
     </section>
+  )
+}
+
+function StoryList({ articles }: { articles: TrendDetail["articles"] }) {
+  return (
+    <ul className="divide-y divide-foreground/[0.08] rounded-xl shadow-soft ring-1 ring-foreground/10 [details_&]:mt-3">
+      {articles.map((a) => (
+        <li key={a.id}>
+          <a href={a.url} target="_blank" rel="noreferrer" className="group flex gap-4 p-4 transition-colors hover:bg-muted/40">
+            {a.image_url ? (
+              // eslint-disable-next-line @next/next/no-img-element -- publisher images come from arbitrary hosts
+              <img src={a.image_url} alt="" loading="lazy" className="size-20 shrink-0 rounded-lg bg-muted object-cover sm:size-24" />
+            ) : <div className="size-20 shrink-0 rounded-lg bg-muted sm:size-24" />}
+            <div className="min-w-0 space-y-1">
+              <p className="font-medium leading-snug"><span className="link-reveal">{a.title}</span> <ExternalLink className="inline size-3 text-muted-foreground" aria-hidden /></p>
+              {a.ai_summary && <p className="line-clamp-2 text-sm text-muted-foreground">{a.ai_summary}</p>}
+              <p className="text-xs text-muted-foreground">{a.source_name} · <TimeAgo iso={a.published_at} /></p>
+            </div>
+          </a>
+        </li>
+      ))}
+    </ul>
   )
 }

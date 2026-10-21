@@ -1,3 +1,4 @@
+import { PublisherImage } from "@/components/ui/publisher-image"
 import { TimeAgo } from "@/components/trends/time-ago"
 import { Monogram } from "@/components/brand/wordmark"
 import type { Article } from "@/lib/api"
@@ -7,8 +8,7 @@ export function ArticleCard({ article: a }: { article: Article }) {
     <a href={a.url} target="_blank" rel="noreferrer" className="group block space-y-3">
       <div className="photo-edge relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
         {a.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element -- publisher images come from arbitrary hosts
-          <img src={a.image_url} alt="" loading="lazy"
+          <PublisherImage src={a.image_url} alt="" loading="lazy"
             className="h-full w-full object-cover transition-transform duration-700 ease-out-expo group-hover:scale-[1.04]" />
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground/30">

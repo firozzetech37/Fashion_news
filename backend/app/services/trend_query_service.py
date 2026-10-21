@@ -114,7 +114,7 @@ def trend_detail_parts(db: Session, trend: Trend) -> dict:
     articles = [
         ArticleOut.model_validate(a).model_copy(update={"source_name": n})
         for a, n in rows if a.duplicate_of_id is None
-    ][:12]
+    ][:30]
 
     # Related: trends that appear in the same articles, then nearest by embedding
     article_ids = [a.id for a, _ in rows]

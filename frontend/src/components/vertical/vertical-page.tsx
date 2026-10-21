@@ -117,7 +117,7 @@ async function VerticalSections({ vertical, peopleTitle }: { vertical: Vertical;
       )}
 
       {data.stories.length > 0 && (
-        <Section title="Latest looks & stories" eyebrow="Fresh from the press">
+        <Section title="Latest looks & stories" eyebrow="Fresh from the press" href={`/news?vertical=${vertical}`}>
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {data.stories.map((a) => <ArticleCard key={a.id} article={a} />)}
           </div>

@@ -1,5 +1,6 @@
 export const PRIMARY_LINKS = [
   { href: "/trending", label: "Trending" },
+  { href: "/news", label: "News" },
   { href: "/radar", label: "Radar" },
   { href: "/fashion", label: "Fashion" },
   { href: "/bollywood", label: "Bollywood" },

@@ -9,6 +9,7 @@ from app.core.database import get_db
 from app.models import Article, Source
 from app.schemas.article import ArticleList, ArticleOut, SimilarArticle
 from app.services.ai_pipeline_service import process_article
+from app.services.verticals import vertical_clause
 
 router = APIRouter()
 
@@ -38,6 +39,8 @@ def list_articles(
     has_trends: bool = False,
     exclude_duplicates: bool = False,
     min_relevance: Optional[float] = Query(None, ge=0, le=1),
+    vertical: Optional[str] = Query(None, pattern="^(fashion|bollywood|hollywood|runway)$"),
+    has_image: bool = False,
     sort: str = Query("published", pattern="^(published|processed)$"),
 ):
     query = db.query(Article, Source.name).join(Source, Source.id == Article.source_id)
@@ -53,6 +56,10 @@ def list_articles(
         query = query.filter(Article.duplicate_of_id.is_(None))
     if min_relevance is not None:
         query = query.filter(Article.fashion_relevance >= min_relevance)
+    if vertical:
+        query = query.filter(vertical_clause(vertical))
+    if has_image:
+        query = query.filter(Article.image_url.isnot(None), Article.image_url != "")
     total = query.count()
     order = (
         [Article.ai_processed_at.desc().nulls_last()]

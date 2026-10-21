@@ -21,7 +21,7 @@ export function Wordmark({ className, asLink = true }: { className?: string; asL
   const inner = (
     <>
       <Monogram className="size-6 sm:size-7" />
-      <span className="font-serif text-base font-bold leading-none tracking-[0.16em] sm:text-[1.2rem] sm:tracking-[0.2em]">TREND SCOPE</span>
+      <span className="whitespace-nowrap font-serif text-base font-bold leading-none tracking-[0.16em] sm:text-[1.2rem] sm:tracking-[0.2em] xl:text-[1.05rem] xl:tracking-[0.16em] 2xl:text-[1.2rem] 2xl:tracking-[0.2em]">TREND SCOPE</span>
     </>
   )
   const classes = cn("inline-flex items-center gap-2.5 text-foreground", className)

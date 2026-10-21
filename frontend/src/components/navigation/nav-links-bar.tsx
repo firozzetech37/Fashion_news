@@ -19,7 +19,7 @@ export function NavLinksBar() {
           key={link.href}
           href={link.href}
           aria-current={isActive(link.href, pathname) ? "page" : undefined}
-          className="relative flex h-16 items-center px-2.5 text-sm font-medium text-muted-foreground transition-colors duration-200 after:absolute after:inset-x-2.5 after:bottom-0 after:h-px after:origin-left after:scale-x-0 after:bg-foreground after:transition-transform after:duration-300 after:ease-out-expo hover:text-foreground hover:after:scale-x-100 aria-[current=page]:text-foreground aria-[current=page]:after:scale-x-100"
+          className="relative flex h-16 items-center whitespace-nowrap px-2 text-sm 2xl:px-2.5 font-medium text-muted-foreground transition-colors duration-200 after:absolute after:inset-x-2 after:bottom-0 2xl:after:inset-x-2.5 after:h-px after:origin-left after:scale-x-0 after:bg-foreground after:transition-transform after:duration-300 after:ease-out-expo hover:text-foreground hover:after:scale-x-100 aria-[current=page]:text-foreground aria-[current=page]:after:scale-x-100"
         >
           {link.label}
         </Link>

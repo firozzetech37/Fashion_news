@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { PublisherImage } from "@/components/ui/publisher-image"
 import { ArrowDownRight, ArrowUpRight } from "lucide-react"
 import { cn } from "cn"
 import { Monogram } from "@/components/brand/wordmark"
@@ -16,8 +17,7 @@ export function TrendCard({ trend }: { trend: TrendSummary }) {
       {/* Cover photo from the stories behind the trend; a quiet placeholder keeps card heights even in a grid */}
       <div className="photo-edge relative -mx-5 -mt-5 aspect-[16/10] overflow-hidden bg-muted">
         {trend.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element -- publisher images come from arbitrary hosts
-          <img src={trend.image_url} alt="" loading="lazy"
+          <PublisherImage src={trend.image_url} alt="" loading="lazy"
             className="h-full w-full object-cover object-[50%_25%] transition-transform duration-700 ease-out-expo group-hover:scale-[1.04]" />
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground/30">
@@ -36,7 +36,8 @@ export function TrendCard({ trend }: { trend: TrendSummary }) {
           {Math.round(trend.trend_score)}
         </span>
       </div>
-      <Sparkline values={trend.sparkline} className={down ? "text-slate-400" : "text-emerald-600"} />
+      {/* The photo carries the card on phones; the sparkline is detail for larger screens */}
+      <Sparkline values={trend.sparkline} className={cn("hidden sm:block", down ? "text-slate-400" : "text-emerald-600")} />
       <div className="flex items-center justify-between text-sm">
         <StatusBadge status={trend.status} />
         <span className={cn("inline-flex items-center gap-0.5 font-medium tabular-nums", down ? "text-slate-500" : "text-emerald-700")}>

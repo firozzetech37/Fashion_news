@@ -25,7 +25,7 @@ def homepage(db: Session = Depends(get_db)):
             Article.status == "processed", Article.duplicate_of_id.is_(None),
             Article.fashion_relevance >= 0.6, Article.image_url.isnot(None),
         )
-        .order_by(Article.published_at.desc().nulls_last()).limit(6).all()
+        .order_by(Article.published_at.desc().nulls_last()).limit(12).all()
     )
     radar = summaries(db, top)
     return {
